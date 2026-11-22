@@ -1,3 +1,4 @@
+import Button from 'tdesign-react/es/button'
 import type { ReactNode } from 'react'
 import { MetricTip } from './MetricTip'
 
@@ -16,6 +17,7 @@ export function CardFrame({
   emptyText = '暂无数据',
   onExport,
   exportLabel = '导出',
+  exportDisabled = false,
   children,
 }: {
   title: string
@@ -25,6 +27,7 @@ export function CardFrame({
   emptyText?: string
   onExport?: () => void
   exportLabel?: string
+  exportDisabled?: boolean
   children?: ReactNode
 }) {
   return (
@@ -38,14 +41,17 @@ export function CardFrame({
           {`数据截至 ${updatedAt}`}
         </span>
         {onExport && (
-          <button
-            type="button"
+          <Button
+            tag="button"
+            disabled={exportDisabled}
+            size="small"
+            variant="outline"
             className="card__export"
             data-testid="card-export"
             onClick={onExport}
           >
             {exportLabel}
-          </button>
+          </Button>
         )}
       </header>
       <div className="card__body">

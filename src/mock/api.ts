@@ -3,7 +3,7 @@
  * **确定性**：同一 (panelId, filters) 必得同一组数 ⇒ 截图与测试可复现。
  * 对接点：接真实接口时只替换本文件的 fetchPanelData（见 README「对接点」）。
  */
-import type { Filters } from '../shell/filters'
+import { dateISO, validRange, type Filters } from '../shell/filters'
 import type { FloorRow } from '../charts/options'
 
 export interface Permission {
@@ -58,6 +58,7 @@ export interface PanelData {
   occupancy?: {
     rateEnd: number
     rateMoM: number
+    rateYoY: number
     trendMonths: string[]
     trendRates: number[]
     floors: FloorRow[]
@@ -73,37 +74,63 @@ export interface PanelData {
   membershipRevenue?: { months: string[]; values: number[] }
 }
 
-function seedOf(panelId: string, f: Filters): number {
-  return hashString(`${panelId}|${f.venue}|${f.range}|${f.from}|${f.to}|${f.compare}`)
+function seedOf(panelId:string,f:Filters):number{
+ return hashString(`${panelId}|${f.venue}|${f.from}|${f.to}`)
 }
-
+function shiftDate(date:string,months:number):string{
+ const d=new Date(date+'T00:00:00Z'),y=d.getUTCFullYear(),m=d.getUTCMonth(),day=d.getUTCDate()
+ const monthLast=new Date(Date.UTC(y,m+1,0)).getUTCDate()
+ const targetLast=new Date(Date.UTC(y,m+months+1,0)).getUTCDate()
+ return dateISO(new Date(Date.UTC(y,m+months,day===monthLast?targetLast:Math.min(day,targetLast))))
+}
+export function occupancySnapshot(venue:Filters['venue'],date:string){
+ const rnd=seededRandom(hashString('inventory|'+venue+'|'+date))
+ const scale=venue==='cluster'?3:1
+ const floors:FloorRow[]=['F1','F2','F3','F4','F5'].map((name,i)=>{
+   const total=(60+i*8)*scale
+   const rented=Math.round(total*(.60+rnd()*.33))
+   const reserved=Math.min(total-rented,Math.max(1,Math.round((total-rented)*(.1+rnd()*.45))))
+   return {floorId:'fl-'+name.toLowerCase(),floorName:name+' 层',rented,reserved,vacant:total-rented-reserved}
+ })
+ const total=floors.reduce((n,r)=>n+r.rented+r.reserved+r.vacant,0)
+ const rented=floors.reduce((n,r)=>n+r.rented,0)
+ return {floors,rate:Math.round(rented/total*1000)/10}
+}
+const delta=(a:number,b:number)=>Math.round((a-b)*10)/10
+function pctChange(a:number,b:number){return b?((a-b)/b)*100:0}
+function fmt(n:number,unit='%'){return (n>=0?'+':'')+n.toFixed(1)+unit}
+function mockScalar(name:string,f:Filters,date=f.to):number{
+ const r=seededRandom(hashString(name+'|'+f.venue+'|'+date))
+ return Math.round((100+r()*120)*(f.venue==='cluster'?3:1))
+}
 export async function fetchPanelData(
   panelId: string,
   filters: Filters,
   perm: Permission = { canViewCluster: true },
 ): Promise<PanelData> {
-  const rnd = seededRandom(seedOf(panelId, filters))
-  const endMonth = filters.range === 'last_month' ? '2026-10' : filters.range === 'this_quarter' ? '2026-11' : '2026-11'
-  const cmpName = filters.compare === 'yoy' ? '同比' : '环比'
-  const cmpFactor = filters.compare === 'yoy' ? 1.18 : 1.04
+  if(filters.venue==='cluster'&&!perm.canViewCluster)throw Error('集团范围无权限')
+  if(!validRange(filters.from,filters.to))throw Error('日期范围无效')
+  const rnd=seededRandom(seedOf(panelId,filters))
+  const endMonth=filters.to.slice(0,7)
+  const cmpName=filters.compare==='yoy'?'同比':'环比'
+  const prior=shiftDate(filters.to,filters.compare==='yoy'?-12:-1)
 
   switch (panelId) {
     case 'key-metrics': {
-      const rate = Math.round((82 + rnd() * 8) * 10) / 10
-      const members = Math.round(96 + rnd() * 60)
-      const opps = Math.round(24 + rnd() * 24)
-      const amount = Math.round((1.6 + rnd() * 1.8) * 10000)
-      return {
-        keyMetrics: [
-          { key: 'members', name: '会员企业数', value: `${members} 家`, compareLabel: cmpName, compareValue: `+${(4.2 + rnd() * 3).toFixed(1)}%`, up: true },
-          { key: 'occupancy', name: '空间出租率', value: `${rate.toFixed(1)}%`, compareLabel: cmpName, compareValue: `+${(1.1 + rnd() * 1.6).toFixed(1)}pp`, up: true },
-          { key: 'opps', name: '在途商机', value: `${opps} 条`, compareLabel: cmpName, compareValue: `${rnd() > 0.5 ? '+' : '-'}${Math.round(rnd() * 9)}%`, up: rnd() > 0.5 },
-          { key: 'amount', name: '本月签约额', value: `¥ ${amount.toLocaleString('zh-CN')}`, compareLabel: cmpName, compareValue: `+${((cmpFactor - 1) * 100).toFixed(1)}%`, up: true },
-        ],
-      }
+      const rate=occupancySnapshot(filters.venue,filters.to).rate
+      const rateDelta=delta(rate,occupancySnapshot(filters.venue,prior).rate)
+      const metrics=[['members','会员企业数',' 家'],['opps','在途商机',' 条'],['amount','本期签约额',' 元']] as const
+      const values:KeyMetric[]=metrics.map(([key,name,unit])=>{
+        const factor=key==='amount'?100:1
+        const value=mockScalar(key,filters)*factor
+        const change=pctChange(value,mockScalar(key,filters,prior)*factor)
+        return {key,name,value:value.toLocaleString('zh-CN')+unit,compareLabel:cmpName,compareValue:fmt(change),up:change>=0}
+      })
+      values.splice(1,0,{key:'occupancy',name:'空间出租率',value:rate.toFixed(1)+'%',compareLabel:cmpName,compareValue:fmt(rateDelta,'pp'),up:rateDelta>=0})
+      return {keyMetrics:values}
     }
     case 'network': {
-      const names = perm.canViewCluster ? ['园区 A 座', '园区 B 座', '园区 C 座', '远程会员'] : ['本会所', '远程会员']
+      const names = filters.venue==='cluster' && perm.canViewCluster ? ['园区 A 座', '园区 B 座', '园区 C 座', '远程会员'] : ['本会所', '远程会员']
       return { network: names.map((name) => ({ name, value: Math.round(18 + rnd() * 60) })) }
     }
     case 'funnel': {
@@ -123,30 +150,21 @@ export async function fetchPanelData(
       }
     }
     case 'occupancy': {
-      const floors: FloorRow[] = ['F1', 'F2', 'F3', 'F4', 'F5'].map((f) => {
-        const rented = Math.round(38 + rnd() * 42)
-        const reserved = Math.round(1 + rnd() * 14)
-        const vacant = Math.max(4, Math.round(60 - rented - reserved))
-        return { floorId: `fl-${f.toLowerCase()}`, floorName: `${f} 层`, rented, reserved, vacant }
+      const current=occupancySnapshot(filters.venue,filters.to)
+      const months=monthsBack(endMonth,12)
+      const rates=months.map((m,i)=> {
+        if(i===months.length-1)return current.rate
+        const [y,n]=m.split('-').map(Number)
+        return occupancySnapshot(filters.venue,dateISO(new Date(Date.UTC(y,n,0)))).rate
       })
-      const months = monthsBack(endMonth, 12)
-      const rates = months.map(() => Math.round((78 + rnd() * 16) * 10) / 10)
-      const rateEnd = Math.round((80 + rnd() * 8) * 10) / 10
-      const rateMoM = Math.round((rnd() * 4 - 1) * 10) / 10
-      return {
-        occupancy: {
-          rateEnd,
-          rateMoM,
-          trendMonths: months,
-          trendRates: rates,
-          floors,
-          bucket30: Math.round(2 + rnd() * 6),
-          bucket60: Math.round(4 + rnd() * 6),
-          bucket90: Math.round(12 + rnd() * 10),
-          renewalMonths: months,
-          renewalRates: months.map(() => Math.round((72 + rnd() * 22) * 10) / 10),
-        },
-      }
+      return {occupancy:{
+        rateEnd:current.rate,
+        rateMoM:delta(current.rate,occupancySnapshot(filters.venue,shiftDate(filters.to,-1)).rate),
+        rateYoY:delta(current.rate,occupancySnapshot(filters.venue,shiftDate(filters.to,-12)).rate),
+        trendMonths:months,trendRates:rates,floors:current.floors,
+        bucket30:Math.round(2+rnd()*6),bucket60:Math.round(4+rnd()*6),bucket90:Math.round(12+rnd()*10),
+        renewalMonths:months,renewalRates:months.map(()=>Math.round((72+rnd()*22)*10)/10)
+      }}
     }
     case 'member-success': {
       const months = monthsBack(endMonth, 12)
@@ -159,7 +177,7 @@ export async function fetchPanelData(
       }
     }
     case 'org-agent': {
-      const orgs = ['华东大区', '华南大区', '华北大区', '线上事业部']
+      const orgs = filters.venue==='cluster'?['演示园区 A','演示园区 B','演示园区 C','线上事业部']:['本会所']
       return {
         orgAgent: orgs.map((org) => ({
           org,

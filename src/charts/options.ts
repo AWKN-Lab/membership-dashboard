@@ -22,6 +22,7 @@ export function occupancyStackedOption(rows: FloorRow[]) {
     color: [tokens.color.rent, tokens.color.reserved, tokens.color.vacant],
     tooltip: { trigger: 'axis' },
     legend: {
+      selectedMode: false,
       show: true,
       data: ['已租', '预留', '空置'],
       top: 0,

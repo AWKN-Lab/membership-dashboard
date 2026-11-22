@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import type { Filters } from '../shell/filters'
+import { useNavigate,useLocation } from 'react-router-dom'
+import { filtersToQuery,parseFilters,type Filters } from '../shell/filters'
 import { fetchPanelData, mockPermission, type PanelData, type Permission } from '../mock/api'
 import { EChart } from '../charts/EChart'
 import {
@@ -14,64 +14,39 @@ import { tokens } from '../design/tokens'
 
 export type PanelStatus = 'loading' | 'normal' | 'empty' | 'error'
 
-export function downloadCsv(filename: string, header: string[], rows: (string | number)[][]) {
-  const csv = [header.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n')
-  const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+export {downloadCsv} from './export'
+type DataResult={key:string;data:PanelData|null;status:PanelStatus}
+export function usePanelData(panelId:string,filters:Filters,perm:Permission,forced?:PanelStatus){
+ const key=panelId+'|'+filtersToQuery(filters)+'|'+String(perm.canViewCluster)+'|'+(forced||'')
+ const [result,setResult]=useState<DataResult>({key:'',data:null,status:'loading'})
+ useEffect(()=>{
+   let alive=true
+   if(forced&&forced!=='normal'){setResult({key,data:null,status:forced});return()=>{alive=false}}
+   setResult({key,data:null,status:'loading'})
+   fetchPanelData(panelId,filters,perm).then(data=>{
+     if(alive)setResult({key,data,status:hasData(data)?'normal':'empty'})
+   }).catch(()=>{if(alive)setResult({key,data:null,status:'error'})})
+   return()=>{alive=false}
+ },[key])
+ return result.key===key?result:{key,data:null,status:'loading' as const}
 }
-
-function usePanelData(panelId: string, filters: Filters, perm: Permission) {
-  const [data, setData] = useState<PanelData | null>(null)
-  const [status, setStatus] = useState<PanelStatus>('loading')
-  useEffect(() => {
-    let alive = true
-    setStatus('loading')
-    fetchPanelData(panelId, filters, perm)
-      .then((d) => {
-        if (!alive) return
-        setData(d)
-        setStatus('normal')
-      })
-      .catch(() => alive && setStatus('error'))
-    return () => {
-      alive = false
-    }
-  }, [panelId, filters, perm])
-  return { data, status }
+function hasData(data:PanelData):boolean{
+ return Boolean(data.occupancy?.floors.length||data.keyMetrics?.length||data.network?.length||data.funnel?.length||data.memberSuccess?.months.length||data.orgAgent?.length||data.contractAmount?.months.length||data.membershipRevenue?.months.length)
 }
-
-export function PanelContent({
-  panelId,
-  filters,
-  forceState,
-}: {
-  panelId: string
-  filters: Filters
-  forceState?: PanelStatus
-}) {
-  const navigate = useNavigate()
-  const perm = useMemo(() => mockPermission(''), [])
-  const { data, status } = usePanelData(panelId, filters, perm)
-  const effective: PanelStatus = forceState ?? status
-  const cmp = filters.compare === 'yoy' ? '同比' : '环比'
-
-  if (effective === 'loading') return <div className="state-loading" data-testid="card-loading">加载中…</div>
-  if (effective === 'error')
-    return (
-      <div className="state-error" data-testid="card-error">
-        数据加载失败，请稍后重试
-      </div>
-    )
-  if (effective === 'empty')
-    return <div className="state-empty" data-testid="card-empty">暂无数据</div>
-
+export function PanelContent({panelId,filters,forceState,permission}:{panelId:string;filters:Filters;forceState?:PanelStatus;permission?:Permission}){
+ const location=useLocation()
+ const perm=useMemo(()=>permission??mockPermission(location.search),[permission,location.search])
+ const safe=useMemo(()=>parseFilters(filtersToQuery(filters),perm),[filters,perm])
+ const {data,status}=usePanelData(panelId,safe,perm,forceState)
+ const effective=forceState??status
+ if(effective==='loading')return <div className="state-loading" data-testid="card-loading">加载中…</div>
+ if(effective==='error')return <div className="state-error" data-testid="card-error">数据加载失败，请稍后重试</div>
+ if(effective==='empty'||!data)return <div className="state-empty" data-testid="card-empty">暂无数据</div>
+ return <PanelBody panelId={panelId} filters={safe} perm={perm} data={data}/>
+}
+export function PanelBody({panelId,filters,perm,data}:{panelId:string;filters:Filters;perm:Permission;data:PanelData}){
+ const navigate=useNavigate(),location=useLocation()
+ const cmp=filters.compare==='yoy'?'同比':'环比'
   switch (panelId) {
     case 'key-metrics':
       return (
@@ -104,14 +79,14 @@ export function PanelContent({
     case 'occupancy': {
       const o = data?.occupancy
       if (!o) return <div className="state-empty" data-testid="card-empty">暂无数据</div>
-      const goFloor = (floorId: string) => {
-        const q = new URLSearchParams({
-          venue: filters.venue,
-          range: filters.range,
-          compare: filters.compare,
-        })
-        navigate(`/floors/${floorId}?${q.toString()}`)
+      const goFloor=(floorId:string)=>{
+        const q=new URLSearchParams(filtersToQuery(filters,location.search))
+        // Keep demo permission and full date range; never forward state override.
+        q.delete('state');q.delete('tab')
+        if(!perm.canViewCluster){q.set('venue','club');q.set('perm','club')}
+        navigate('/floors/'+encodeURIComponent(floorId)+'?'+q.toString())
       }
+      const rateDelta=filters.compare==='yoy'?o.rateYoY:o.rateMoM
       return (
         <div data-testid="panel-occupancy">
           <div className="metric-row">
@@ -119,10 +94,10 @@ export function PanelContent({
               {`${o.rateEnd.toFixed(1)}%`}
             </span>
             <span className="metric-cmp" data-testid="rate-mom">
-              {`${cmp} ${o.rateMoM >= 0 ? '+' : ''}${o.rateMoM.toFixed(1)}pp`}
+              {`${cmp} ${rateDelta >= 0 ? '+' : ''}${rateDelta.toFixed(1)}pp`}
             </span>
             <span className="metric-note" data-testid="metric-definition">
-              {`口径 v1.2：出租率 = 已租工位 ÷ 可租工位（期末值）；${cmp} = 本月末 − 上月末（百分点）`}
+              {`口径 v1.2：出租率 = 已租工位 ÷ 可租工位（期末值）；${cmp} = 本期末 − ${filters.compare==='yoy'?'上年同期':'上月同期'}（百分点）`}
             </span>
           </div>
           <h4 className="sub-title">近 12 个月出租率趋势</h4>
@@ -134,6 +109,7 @@ export function PanelContent({
           <h4 className="sub-title">按楼层工位结构（点击楼层查看房态）</h4>
           <EChart
             option={occupancyStackedOption(o.floors)}
+            onSeriesClick={i=>{if(o.floors[i])goFloor(o.floors[i].floorId)}}
             testId="chart-stacked"
             height={240}
           />
@@ -142,7 +118,7 @@ export function PanelContent({
           </div>
           <h4 className="sub-title">到期工位分桶</h4>
           <EChart
-            option={bucketBarOption(['30 天内', '60 天内', '90 天内'], [o.bucket30, o.bucket60, o.bucket90])}
+            option={bucketBarOption(['0–30 天', '31–60 天', '61–90 天'], [o.bucket30, o.bucket60, o.bucket90])}
             testId="chart-bucket"
             height={180}
           />

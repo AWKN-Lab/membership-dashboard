@@ -14,7 +14,7 @@ export const METRIC_LIBRARY: MetricDefinition[] = [
   {
     key: 'occupancy',
     name: '出租率',
-    definition: '出租率 = 已租工位 ÷ 可租工位（期末值）；环比 = 本月末 − 上月末（百分点）',
+    definition: '出租率 = 已租工位 ÷ 可租工位（期末值）；环比 = 本期末 − 上月同期；同比 = 本期末 − 上年同期（百分点）',
     version: 'v1.2',
     updatedAt: '2026-11-22',
   },

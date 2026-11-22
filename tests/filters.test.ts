@@ -3,7 +3,7 @@ import {
   parseFilters,
   filtersToQuery,
   venueOptions,
-  DEFAULT_FILTERS,
+  presetRange,
   type Filters,
 } from '../src/shell/filters'
 
@@ -25,7 +25,7 @@ describe('全局筛选 ⇄ URL（#1851 验收 3）', () => {
 
   it('默认走 URL 读筛选（刷新后保持的机制）', () => {
     expect(parseFilters('?venue=cluster&range=last_month&compare=yoy')).toEqual({
-      venue: 'cluster', range: 'last_month', from: DEFAULT_FILTERS.from, to: DEFAULT_FILTERS.to, compare: 'yoy',
+      venue: 'cluster', range: 'last_month', ...presetRange('last_month'), compare: 'yoy',
     })
   })
 

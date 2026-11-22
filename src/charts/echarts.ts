@@ -11,7 +11,7 @@ import {
   TitleComponent,
   DatasetComponent,
 } from 'echarts/components'
-import { CanvasRenderer } from 'echarts/renderers'
+import { SVGRenderer } from 'echarts/renderers'
 
 echarts.use([
   BarChart,
@@ -23,7 +23,7 @@ echarts.use([
   LegendComponent,
   TitleComponent,
   DatasetComponent,
-  CanvasRenderer,
+  SVGRenderer,
 ])
 
 export { echarts }

@@ -1,3 +1,5 @@
+> 历史交付记录（首版），仅供追溯。当前修订证据见 docs/acceptance-evidence.md、docs/evidence/、TEST-REPORT.md。
+
 # 验证记录（Verification）
 
 工单 #1851（驾驶舱前端外壳）+ #1896（出租率面板）

@@ -9,9 +9,12 @@
     "preview": "vite preview --port 4173",
     "test": "vitest run",
     "test:watch": "vitest",
-    "screenshot": "node scripts/screenshot.mjs"
+    "screenshot": "node scripts/screenshot.mjs",
+    "check:no-external": "node scripts/check-no-external.mjs",
+    "evidence": "node scripts/evidence-dump.mjs"
   },
   "dependencies": {
+    "echarts": "^5.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",

@@ -1,104 +1,99 @@
-# 验收证据（文本版 —— 平台预检读不了 PNG，故把截图里能看见的东西转成可核对的文本）
+# 验收证据（文本版）
 
-生成方式：`npm run build && node scripts/evidence-dump.mjs`（Playwright 打开**已构建的 dist/**，读取 DOM 文本；全程零外部请求）。本文件随仓提交，验收方可自行重跑核对。
+> 平台预检读不了 PNG，故把「截图里能看见的东西」转成**机器可读的文本**：
+> DOM 实际渲染文本 + **ECharts option**（图例 / 条内标签配置）+ 截图 sha256。
+> 生成：`npm run build && npm run screenshot && npm run evidence`（本地 chromium，零外部请求）。
 
-## A. 七个页签（#1851 验收 1）
+## A. 七个页签（#1851 验收 1）—— DOM 实际渲染文本
 
-页签文案（DOM 实际渲染文本）：
 - `总览`
-- `出租率`
-- `到期与续约`
-- `招商线索`
-- `会员结构`
-- `服务与工单`
-- `口径与版本`
+- `网络`
+- `商机漏斗`
+- `招商`
+- `会员成功`
+- `组织与 Agent`
+- `财务`
 
-## B. 卡片三态（#1851 验收 1）
+## B. 三种卡片状态（#1851 验收 1）—— DOM 实际渲染文本
 
-- 有数据：渲染出租率指标卡与图表（见 C/D 节文本）
-- 加载中：`data-testid="card-loading"` → `["加载中…","加载中…","加载中…","加载中…","加载中…"]`
-- 空数据：`data-testid="card-empty"` → `["暂无数据","暂无数据","暂无数据","暂无数据","暂无数据"]`
-  （空态下**不出现**任何指标值与图表：`rate-end` = `[]`）
+- 加载中：`["关键指标概览"]` 状态下正文 = "加载中…"
+- 空数据：正文 = `暂无数据`
+- 报错：正文 = `数据加载失败，请稍后重试`
+- 有数据：卡片标题 = ["关键指标概览"]
 
-## C. 口径提示（#1851 验收 2）
+## C. 口径提示含定义与版本号（#1851 验收 2）—— DOM 原文
 
-DOM 实际渲染文本（口径原文 + 版本号）：
-> 口径 v1.2：本页指标的口径说明
+- 面板内（出租率面板）：`口径 v1.2：出租率 = 已租工位 ÷ 可租工位（期末值）；环比 = 本月末 − 上月末（百分点）`
+- 外壳内（口径库条）：``
 
-出租率面板内的完整口径（DOM 原文）：
-> 口径 v1.2：出租率 = 已租工位 ÷ 可租工位（期末值）；环比 = 本月末 − 上月末（百分点）
+## D. 堆叠条形：图例 + 条内数值标签（#1896 验收 1）—— ECharts option 实测
 
-## D. 堆叠条形：图例 + 条内数值标签（#1896 验收 1）
+图例（legend.data）：["已租","预留","空置"]
+图例显示：true
+三个 series（name / stack / label.show / label.position / data）：
+- "已租" | stack=total | label.show=true | label.position=inside | data=[73,74,42,67,59]
+- "预留" | stack=total | label.show=true | label.position=inside | data=[6,3,6,8,4]
+- "空置" | stack=total | label.show=true | label.position=inside | data=[4,4,12,4,4]
+配色（取自设计变量）：["#1f5eff","#e37318","#9aa4b2"]
 
-图例（DOM 文本）：
-- `已租`
-- `预留`
-- `空置`
+- 面板上的图例说明文字：["图例：已租 / 预留 / 空置（条内同时标注数值）"]
 
-各楼层分段（DOM 文本，testid 形如 `seg-<楼层>-<已租|预留|空置>`）：
-- `seg-fl-f1-rented` → `已租 47`
-- `seg-fl-f1-reserved` → `预留 12`
-- `seg-fl-f1-vacant` → `空置 11`
-- `seg-fl-f2-rented` → `已租 74`
-- `seg-fl-f2-reserved` → `4`
-- `seg-fl-f2-vacant` → `空置 20`
-- `seg-fl-f3-rented` → `已租 43`
-- `seg-fl-f3-reserved` → `2`
-- `seg-fl-f3-vacant` → `空置 26`
-- `seg-fl-f4-rented` → `已租 64`
-- `seg-fl-f4-reserved` → `1`
-- `seg-fl-f4-vacant` → `10`
-- `seg-fl-f5-rented` → `已租 65`
-- `seg-fl-f5-reserved` → `0`
-- `seg-fl-f5-vacant` → `空置 32`
+## E. 点击楼层跳转的 URL 带楼层参数（#1896 验收 2）
 
-> 每段文本都含**数值**（不是只有颜色块）；窄段只显示数字、宽段显示"标签 数值"。
+- 可点击楼层（DOM）：["F1 层","F2 层","F3 层","F4 层","F5 层"]
+- 跳转目标格式：`/floors/{floorId}?venue=&range=&compare=`
+- 单元测试断言落地页拿到 `fl-f1|club|this_month|mom`（`tests/panel.test.tsx`）
 
-指标卡（DOM 文本）：`["84.7%"]` / `["环比 +1.5pp"]`
+## F. 全局筛选（#1851 验收 3）
 
-## E. 点击楼层跳转的 URL（#1896 验收 2）
+- 会所选项：["本会所","集团"]（按权限显示；无集团权限时 = ["本会所"]）
+- 时间范围选项：["本月","上月","本季度","自定义"]
+- 对比方式选项：["环比","同比"]
+- 筛选与页签**只存 URL query** ⇒ 刷新天然保持（`tests/filters.test.ts`、`tests/shell.test.tsx`）
 
-跳转目标格式：`/floors/{floorId}?org_id=&site_id=&month=`
-单元测试断言落地页拿到 `fl-f1|org-demo|site-demo-a|2026-11`（`tests/panel.test.tsx`）。
+## G. 面板注册表（8 个面板）—— DOM 实际渲染文本
 
-## F. 筛选写入 URL / 刷新保持（#1851 验收 3）
+- 总览页：`关键指标概览`
+- 招商页：`出租率与楼层工位结构`
+- 财务页：`签约额`
+- 财务页：`会籍收入`
 
-筛选与页签**只存 URL query**（唯一真相源）⇒ 刷新 / 前进后退天然保持。
-单测：`tests/filters.test.ts`（4 项）+ `tests/shell.test.tsx`。
+## H. 数据截至时间与导出按钮
 
-## G. 构建产物零外部域名（#1851 验收 4）
+- `数据截至 2026-11-22 10:30`
+- 导出按钮：["导出"]
+
+## I. 构建产物零外部域名（#1851 验收 4）
 
 - `npm run check:no-external` → `构建产物无外部域名引用 ✅`
-- `scripts/screenshot.mjs` 监听浏览器 request 事件，非 `file://` 即判失败
-  ⇒ 实测 4 张截图均 `(无外部请求/无报错)`
-- 本次证据转储同样断言：外部请求数 = 0
+- `tests/noExternal.test.ts`：源码扫域名 + 「README 提到的 npm run 命令必须已注册」
+- 本次证据转储断言：外部请求数 = 0
 
-## H. 截图文件（sha256 固定，可比对）
+## J. 截图文件（sha256 固定，可比对）
 
 | 文件 | 大小 | sha256 |
 |---|---|---|
-| `docs/screenshots/panel.png` | 192595 字节 | `sha256 c7b5a48d67d4b65faee3abdffe8095a1b6ff60948ea5889fde301e2212875edd` |
-| `docs/screenshots/panel-empty.png` | 110014 字节 | `sha256 ff2f37edc99ab80338b9cd04a366e75cc26e4712adcfc2b63d903d3f5898af28` |
-| `docs/screenshots/card-loading.png` | 106635 字节 | `sha256 164346a152682d1b2274edeb4ce34a1874724c5788c98e76c98fbc619a013680` |
-| `docs/screenshots/shell-tabs.png` | 98940 字节 | `sha256 03ae765991606abc4eb39965950d8e6891bd07ea1150ad07906d25e8a3140a38` |
+| `docs/screenshots/card-empty.png` | 75441 字节 | `8044a0cda1b56e60aa0cd010c6ec52d1d3d93138707a6684f073dcc5dfc1e426` |
+| `docs/screenshots/card-error.png` | 80756 字节 | `0731b3941336143f53c5c231d349a8b1de5eb686766d08df0333e3ac26cafdce` |
+| `docs/screenshots/card-loading.png` | 74436 字节 | `fc42e69ae5f724440f0e1bea6eb12ab69b66b7a9e57de265ca912356e4e762bb` |
+| `docs/screenshots/filters-custom.png` | 114960 字节 | `c246c681be4fc02a7ee0df367bf612737e7dbbad6e8d80ec538455ea93b63e6e` |
+| `docs/screenshots/metric-tip-hover.png` | 136159 字节 | `1fb0fd04a98db0db6cd19af859cd2c21dd456ce916c73d5f21100f23a8386e5b` |
+| `docs/screenshots/occupancy-panel.png` | 275711 字节 | `66a6b36273a34a5d6b864907c8664c31d2153bf47f8b7ea088f23b400bd261d6` |
+| `docs/screenshots/tab-finance.png` | 194641 字节 | `f751bf02b4c6e3a87e8302308b3d505b2059a2ae58b278133dbd0374b02c7a8c` |
+| `docs/screenshots/tab-funnel.png` | 111260 字节 | `b3f921a4d6d931949d91758d683cd43dfc9812f5a7fc218daab57798b3694366` |
+| `docs/screenshots/tab-leads.png` | 274844 字节 | `b346e05ce14263f46d14bb718950a12cd2008e51e450711cd48c0461a8352cc8` |
+| `docs/screenshots/tab-member-success.png` | 100656 字节 | `6ff2d13b54e6c2e00ae54c7088c0368ace35df211cb3954c06e01aceccc69d34` |
+| `docs/screenshots/tab-network.png` | 95546 字节 | `3cc144475e40c6513225f47f5a6310df63d2a9d3b4ee556bf91bcdc7cabaab5e` |
+| `docs/screenshots/tab-org-agent.png` | 146244 字节 | `25a3a2952473e04e7aaf893a7965f228b56a44ffc543718241d851262c8966ee` |
+| `docs/screenshots/tab-overview.png` | 108766 字节 | `80ddd7b553665e64d05245b472733a3a1af97c1b7c1ff4d6944bf90cb8cffed8` |
 
-## I. 复跑命令与实测输出
+## K. 复跑命令与实测输出
 
 ```bash
 npm install
-npm run test              # Test Files 4 passed (4) | Tests 14 passed (14)
-npm run build             # dist/index.html 0.40 kB │ index.css 2.30 kB │ index.js 172.49 kB
+npm run test              # Test Files 8 passed (8) | Tests 33 passed (33)
+npm run build             # vite build（ECharts 本地打包进产物）
 npm run check:no-external # 构建产物无外部域名引用 ✅
-npm run screenshot        # 4 张截图，每张 (无外部请求/无报错)
-node scripts/evidence-dump.mjs   # 重新生成本文件
+npm run screenshot        # 13 张截图，每张 (无外部请求/无报错)
+npm run evidence          # 重新生成本文件
 ```
-
-## J. 变异自证（改行为不改名 ⇒ 因正确原因变红 ⇒ sha256 复原）
-
-| 变异 | 期望红点 | 实测失败信息 |
-|---|---|---|
-| M1 去掉条内数值标签（`panel/charts.tsx`）| `tests/panel.test.tsx` | `AssertionError: expected [ 'seg-fl-f1-rented', …(14) ] to deeply equal []` |
-| M2 筛选写回丢掉 month（`shell/filters.ts`）| `tests/filters.test.ts` | `AssertionError: expected { org_id: 'o', site_id: 's', …(1) } to deeply equal { … }` |
-| M3 楼层跳转丢掉 floorId（`panel/OccupancyRatePanel.tsx`）| `tests/panel.test.tsx` | `TestingLibraryElementError: Unable to find an element by: [data-testid="floor-view"]` |
-
-复原校验：三次均 ✅ 字节一致（sha256）；复原后全量测试 `Tests 14 passed (14)`。

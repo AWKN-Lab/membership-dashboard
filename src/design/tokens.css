@@ -1,0 +1,16 @@
+/* 设计变量（客户约定：图表配色取设计变量）—— 唯一来源，CSS 与 ECharts 共用 */
+:root {
+  --color-brand: #1f5eff;
+  --color-rent: #1f5eff;
+  --color-reserved: #e37318;
+  --color-vacant: #9aa4b2;
+  --color-positive: #2ba471;
+  --color-negative: #d54941;
+  --color-text: #1b2430;
+  --color-text-weak: #5b6674;
+  --color-bg: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-border: #e4e8ee;
+  --radius-card: 10px;
+  --space-card: 16px;
+}

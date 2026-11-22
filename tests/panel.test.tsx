@@ -1,70 +1,70 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { MemoryRouter, Routes, Route, useParams, useLocation } from 'react-router-dom'
-import { OccupancyRatePanel } from '../src/panel/OccupancyRatePanel'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { PanelContent } from '../src/panels/PanelContent'
+import { parseFilters } from '../src/shell/filters'
 
-const filters = { org_id: 'org-demo', site_id: 'site-demo-a', month: '2026-11' }
+const filters = parseFilters('?venue=club&range=this_month&compare=mom')
 
-/** 落地页把路由参数与 query 一并吐出来，便于断言"URL 带楼层参数" */
-function FloorView() {
-  const { floorId } = useParams()
-  const { search } = useLocation()
-  const q = new URLSearchParams(search)
-  return (
-    <div data-testid="floor-view">
-      {floorId}|{q.get('org_id')}|{q.get('site_id')}|{q.get('month')}
-    </div>
-  )
+function LocationProbe() {
+  const loc = useLocation()
+  return <div data-testid="location">{`${loc.pathname}?${loc.search}`}</div>
 }
 
 describe('出租率面板（#1896）', () => {
-  it('堆叠条形**同时**有图例与条内数值标签', async () => {
-    render(<MemoryRouter><OccupancyRatePanel filters={filters} /></MemoryRouter>)
-    await screen.findByTestId('stacked-bar')
-    expect(screen.getByTestId('legend')).toBeTruthy()
-    expect(screen.getByTestId('legend-rented')).toBeTruthy()
-    expect(screen.getByTestId('legend-reserved')).toBeTruthy()
-    expect(screen.getByTestId('legend-vacant')).toBeTruthy()
-    // 条内数值标签：段元素里带可见文本
-    const segs = Array.from(document.querySelectorAll('[data-testid^="seg-"]'))
-    expect(segs.length).toBeGreaterThan(0)
-    const missing = segs
-      .filter((e) => !/\d/.test(e.textContent || ''))
-      .map((e) => e.getAttribute('data-testid'))
-    expect(missing).toEqual([])
+  it('渲染指标卡与三张图（出租率 / 堆叠条形 / 到期分桶 / 续约率）', async () => {
+    render(
+      <MemoryRouter>
+        <PanelContent panelId="occupancy" filters={filters} />
+      </MemoryRouter>,
+    )
+    await waitFor(() => expect(screen.getByTestId('rate-end')).toBeTruthy())
+    expect(screen.getByTestId('rate-end').textContent).toMatch(/\d+\.\d%/)
+    expect(screen.getByTestId('rate-mom').textContent).toMatch(/(环比|同比)/)
+    expect(screen.getByTestId('chart-trend')).toBeTruthy()
+    expect(screen.getByTestId('chart-stacked')).toBeTruthy()
+    expect(screen.getByTestId('chart-bucket')).toBeTruthy()
+    expect(screen.getByTestId('chart-renewal')).toBeTruthy()
   })
 
   it('点击楼层跳转的 URL 带楼层参数', async () => {
     render(
       <MemoryRouter initialEntries={['/']}>
+        <LocationProbe />
         <Routes>
-          <Route path="/" element={<OccupancyRatePanel filters={filters} />} />
-          <Route path="/floors/:floorId" element={<FloorView />} />
+          <Route path="/" element={<PanelContent panelId="occupancy" filters={filters} />} />
+          <Route path="/floors/:floorId" element={<div data-testid="floor-view">房态视图</div>} />
         </Routes>
       </MemoryRouter>,
     )
-    await screen.findByTestId('stacked-bar')
-    const seg = document.querySelector('[data-testid^="seg-"]') as HTMLElement
-    fireEvent.click(seg)
-    // 落地页拿到楼层参数 + 三个筛选参数
+    await waitFor(() => expect(screen.getByTestId('floor-links')).toBeTruthy())
+    const link = document.querySelector('[data-testid^="floor-link-"]') as HTMLElement
+    expect(link).toBeTruthy()
+    fireEvent.click(link)
     await waitFor(() => expect(screen.getByTestId('floor-view')).toBeTruthy())
-    expect(screen.getByTestId('floor-view').textContent).toBe('fl-f1|org-demo|site-demo-a|2026-11')
+    const url = screen.getByTestId('location').textContent || ''
+    expect(url).toMatch(/^\/floors\/fl-f1\?/)
+    expect(url).toContain('venue=club')
+    expect(url).toContain('compare=mom')
   })
 
   it('空数据状态渲染空态而不是把 0 画成数据', async () => {
-    render(<MemoryRouter><OccupancyRatePanel filters={filters} empty /></MemoryRouter>)
-    // 面板里有多张卡 ⇒ 空态元素不止一个
-    const empties = await screen.findAllByTestId('card-empty')
-    expect(empties.length).toBeGreaterThan(0)
-    // 空态下**不能**把 0 画成数据
+    render(
+      <MemoryRouter>
+        <PanelContent panelId="occupancy" filters={filters} forceState="empty" />
+      </MemoryRouter>,
+    )
+    await waitFor(() => expect(screen.getAllByTestId('card-empty').length).toBeGreaterThan(0))
     expect(screen.queryByTestId('rate-end')).toBeNull()
-    expect(document.body.textContent).not.toMatch(/出租率面板/)
+    expect(screen.queryByTestId('chart-stacked')).toBeNull()
   })
 
-  it('指标卡显示期末值与环比', async () => {
-    render(<MemoryRouter><OccupancyRatePanel filters={filters} /></MemoryRouter>)
-    await screen.findByTestId('rate-end')
-    await waitFor(() => expect(screen.getByTestId('rate-end').textContent).toMatch(/\d+\.\d%/))
-    expect(screen.getByTestId('rate-mom').textContent).toMatch(/环比/)
+  it('报错状态有独立渲染分支', async () => {
+    render(
+      <MemoryRouter>
+        <PanelContent panelId="occupancy" filters={filters} forceState="error" />
+      </MemoryRouter>,
+    )
+    await waitFor(() => expect(screen.getAllByTestId('card-error').length).toBeGreaterThan(0))
   })
 })

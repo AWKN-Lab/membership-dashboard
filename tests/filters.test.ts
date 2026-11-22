@@ -1,26 +1,9 @@
-import { describe, expect, it } from 'vitest'
-import { DEFAULT_FILTERS, filtersToQuery, parseFilters } from '../src/shell/filters'
-
-describe('全局筛选写入 URL 且刷新后保持（#1851 验收第 3 条）', () => {
-  it('parse: 缺失参数回落到默认值', () => {
-    expect(parseFilters('')).toEqual(DEFAULT_FILTERS)
-    expect(parseFilters('?org_id=org-x')).toEqual({ ...DEFAULT_FILTERS, org_id: 'org-x' })
-  })
-
-  it('parse: 三个参数都能读回来', () => {
-    const q = '?org_id=org-2&site_id=site-b&month=2026-03'
-    expect(parseFilters(q)).toEqual({ org_id: 'org-2', site_id: 'site-b', month: '2026-03' })
-  })
-
-  it('filtersToQuery: 写出的 query 再 parse 回来完全一致（幂等往返）', () => {
-    const f = { org_id: 'o', site_id: 's', month: '2026-05' }
-    expect(parseFilters('?' + filtersToQuery(f))).toEqual(f)
-  })
-
-  it('filtersToQuery: 三个键都出现', () => {
-    const q = filtersToQuery(DEFAULT_FILTERS)
-    expect(q).toContain('org_id=')
-    expect(q).toContain('site_id=')
-    expect(q).toContain('month=')
-  })
+import {describe,it,expect} from 'vitest'
+import {periodRange,parseFilters,filtersToQuery,updateFilter,occupancyFilters} from '../src/shell/filters'
+const now=new Date('2026-11-22T00:00:00Z')
+describe('filters',()=>{
+ it('presets resolve month, last month, quarter',()=>{expect(periodRange('this-month',now)).toEqual({start:'2026-11-01',end:'2026-11-30'});expect(periodRange('last-month',now)).toEqual({start:'2026-10-01',end:'2026-10-31'});expect(periodRange('this-quarter',now)).toEqual({start:'2026-10-01',end:'2026-12-31'})})
+ it('round trip custom dates and comparison, preserves tab and unrelated parameters',()=>{const f=parseFilters('?scope=group&period=custom&start=2026-03-01&end=2026-04-20&comparison=yoy',undefined,now);const query=filtersToQuery(f,'?tab=finance&keep=1');expect(parseFilters(query,undefined,now)).toEqual(f);expect(new URLSearchParams(query).get('tab')).toBe('finance');expect(new URLSearchParams(query).get('keep')).toBe('1')})
+ it('denies group in direct URL and updates when permission absent',()=>{const a={siteId:'site-private',canViewGroup:false};const f=parseFilters('?scope=group',a,now);expect(f.scope).toBe('site');expect(updateFilter(f,{scope:'group'},a,now).scope).toBe('site');expect(occupancyFilters(f,a).site_id).toBe('site-private')})
+ it('rejects invalid or reversed custom dates',()=>{for(const s of ['start=2026-02-30&end=2026-04-01','start=2026-04-01&end=2026-03-01'])expect(parseFilters('?period=custom&'+s,undefined,now).period).toBe('this-month')})
 })

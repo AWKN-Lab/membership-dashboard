@@ -1,90 +1,42 @@
-import React from 'react'
-
-/** 纯 SVG 图表：不引第三方图表库 ⇒ 构建产物不含任何外部域名引用。 */
-
-export function TrendLine({ data, unit = '%' }: { data: { month: string; rate: number }[]; unit?: string }) {
-  const W = 560, H = 160, P = 28
-  if (!data.length) return <div className="state-empty" data-testid="trend-empty">暂无数据</div>
-  const vals = data.map((d) => d.rate)
-  const min = Math.min(...vals) - 3, max = Math.max(...vals) + 3
-  const x = (i: number) => P + (i * (W - P * 2)) / Math.max(1, data.length - 1)
-  const y = (v: number) => H - P - ((v - min) / Math.max(1, max - min)) * (H - P * 2)
-  const path = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${x(i).toFixed(1)},${y(d.rate).toFixed(1)}`).join(' ')
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" data-testid="trend-line">
-      <line x1={P} y1={H - P} x2={W - P} y2={H - P} stroke="#e3e5e8" />
-      <path d={path} fill="none" stroke="#0052d9" strokeWidth={2} />
-      {data.map((d, i) => (
-        <circle key={d.month} cx={x(i)} cy={y(d.rate)} r={2.5} fill="#0052d9" />
-      ))}
-      <text x={P} y={14} fontSize={11} fill="#6b7785">{`${data[0].month} → ${data[data.length - 1].month}`}</text>
-      <text x={W - P} y={14} fontSize={11} fill="#6b7785" textAnchor="end">{`${max.toFixed(1)}${unit}`}</text>
-    </svg>
-  )
+import React,{useEffect,useRef} from 'react'
+import * as echarts from 'echarts/core'
+import { LineChart, BarChart } from 'echarts/charts'
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { SVGRenderer } from 'echarts/renderers'
+import type { EChartsCoreOption } from 'echarts/core'
+echarts.use([LineChart,BarChart,GridComponent,LegendComponent,TooltipComponent,SVGRenderer])
+const colors=['#0052d9','#e37318','#6b7785']
+function Chart({option,height=220,onClick,label}:{option:EChartsCoreOption;height?:number;onClick?:(i:number)=>void;label:string}){
+ const el=useRef<HTMLDivElement>(null)
+ useEffect(()=>{
+  if(!el.current)return
+  const c=echarts.init(el.current,undefined,{renderer:'svg',width:el.current.clientWidth||720,height})
+  c.setOption(option)
+  c.on('click',(e)=>{if(e.componentType==='series'&&typeof e.dataIndex==='number')onClick?.(e.dataIndex)})
+  const ro=typeof ResizeObserver!=='undefined'?new ResizeObserver(()=>{if(el.current?.clientWidth)c.resize({width:el.current.clientWidth,height})}):null
+  if(ro)ro.observe(el.current)
+  return ()=>{ro?.disconnect();c.dispose()}
+ },[option,height,onClick])
+ return <div ref={el} style={{height,width:'100%'}} role="img" aria-label={label} data-testid="echarts-surface"/>
 }
-
-export interface StackSegment { key: string; label: string; value: number; color: string }
-
-/**
- * 按楼层的堆叠条形图（#1896 验收第 1 条）：
- * **图例 + 条内数值标签必须同时出现** ⇒ 段宽度够就画在段内，窄段则标注在外侧。
- */
-export function StackedBarByFloor({
-  rows, onFloorClick,
-}: {
-  rows: { floorId: string; floorName: string; parts: StackSegment[] }[]
-  onFloorClick?: (floorId: string) => void
-}) {
-  if (!rows.length) return <div className="state-empty" data-testid="stack-empty">暂无楼层数据</div>
-  const totals = rows.map((r) => r.parts.reduce((s, p) => s + p.value, 0) || 1)
-  const max = Math.max(...totals)
-  return (
-    <div data-testid="stacked-bar">
-      <div className="legend" data-testid="legend">
-        {rows[0].parts.map((p) => (
-          <span className="legend__item" key={p.key} data-testid={`legend-${p.key}`}>
-            <span className="legend__swatch" style={{ background: p.color }} />{p.label}
-          </span>
-        ))}
-      </div>
-      {rows.map((r, i) => (
-        <div className="bar-row" key={r.floorId}>
-          <span className="bar-row__name">{r.floorName}</span>
-          <div className="bar-row__track" style={{ width: `${(totals[i] / max) * 100}%` }}>
-            {r.parts.map((p) => {
-              const pct = (p.value / totals[i]) * 100
-              const wide = pct > 14
-              return (
-                <div
-                  key={p.key}
-                  className="bar-seg"
-                  data-testid={`seg-${r.floorId}-${p.key}`}
-                  style={{ width: `${pct}%`, background: p.color }}
-                  title={`${r.floorName} ${p.label} ${p.value}`}
-                  onClick={() => onFloorClick?.(r.floorId)}
-                >
-                  {wide ? `${p.label} ${p.value}` : p.value}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
+const grid={left:55,right:24,top:32,bottom:34,containLabel:true}
+export function TrendLine({data,unit='%'}:{data:{month:string;rate:number}[];unit?:string}){
+ if(!data.length)return <div className="state-empty">暂无数据</div>
+ return <div data-testid="trend-line"><Chart label="月度趋势" option={{animation:false,color:colors,grid,tooltip:{trigger:'axis',valueFormatter:(v:number)=>v+unit},xAxis:{type:'category',data:data.map(d=>d.month)},yAxis:{type:'value',min:0,max:100,axisLabel:{formatter:'{value}'+unit}},series:[{type:'line',data:data.map(d=>d.rate),label:{show:true,formatter:'{c}'+unit,fontSize:10}}]}}/></div>
 }
-
-export function BucketBar({ data, labels }: { data: number[]; labels: string[] }) {
-  const max = Math.max(...data, 1)
-  return (
-    <div data-testid="bucket-bar">
-      {data.map((v, i) => (
-        <div className="bar-row" key={labels[i]}>
-          <span className="bar-row__name">{labels[i]}</span>
-          <div className="bar-row__track" style={{ width: `${(v / max) * 100}%`, background: '#e37318' }} />
-          <span style={{ fontSize: 12 }}>{v}</span>
-        </div>
-      ))}
-    </div>
-  )
+export interface StackSegment {key:string;label:string;value:number;color:string}
+export function StackedBarByFloor({rows,onFloorClick}:{rows:{floorId:string;floorName:string;parts:StackSegment[]}[];onFloorClick?:(floorId:string)=>void}){
+ if(!rows.length)return <div className="state-empty">暂无楼层数据</div>
+ const parts=rows[0].parts
+ return <div data-testid="stacked-bar">
+ <Chart label="楼层工位堆叠条形图" height={300} onClick={i=>{if(rows[i])onFloorClick?.(rows[i].floorId)}} option={{
+  animation:false,color:parts.map(p=>p.color),grid:{left:55,right:25,top:44,bottom:25,containLabel:true},tooltip:{trigger:'item'},legend:{top:0,data:parts.map(p=>p.label),selectedMode:false},
+  xAxis:{type:'value'},yAxis:{type:'category',inverse:true,data:rows.map(r=>r.floorName)},
+  series:parts.map(p=>({name:p.label,type:'bar',stack:'total',barWidth:30,label:{show:true,position:'inside',formatter:'{c}',color:'#fff',fontWeight:'bold'},data:rows.map(r=>r.parts.find(s=>s.key===p.key)?.value??0)}))
+ }}/>
+ <table className="mini accessible-data"><caption>楼层数据与跳转（与图表使用相同数据）</caption><thead><tr><th>楼层</th>{parts.map(p=><th key={p.key}>{p.label}</th>)}</tr></thead><tbody>{rows.map(r=><tr key={r.floorId}><th><button type="button" onClick={()=>onFloorClick?.(r.floorId)}>{r.floorName}</button></th>{r.parts.map(p=><td key={p.key}>{p.value}</td>)}</tr>)}</tbody></table>
+ </div>
+}
+export function BucketBar({data,labels}:{data:number[];labels:string[]}){
+ return <div data-testid="bucket-bar"><Chart label="到期工位分桶" option={{animation:false,color:[colors[1]],grid,tooltip:{trigger:'item'},xAxis:{type:'category',data:labels},yAxis:{type:'value',min:0},series:[{type:'bar',data,label:{show:true,position:'top'}}]}}/></div>
 }

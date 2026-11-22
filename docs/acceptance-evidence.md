@@ -1,3 +1,5 @@
+> 历史 v1 交付证据（37a20212 / bfe959f），不适用于本整改分支。新版证据以 docs/GPT-REVIEW.md 和实际重跑输出为准。
+
 # 验收证据（文本版 —— 平台预检读不了 PNG，故把截图里能看见的东西转成可核对的文本）
 
 生成方式：`npm run build && node scripts/evidence-dump.mjs`（Playwright 打开**已构建的 dist/**，读取 DOM 文本；全程零外部请求）。本文件随仓提交，验收方可自行重跑核对。

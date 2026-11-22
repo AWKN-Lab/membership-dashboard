@@ -61,9 +61,9 @@ function seededRandom(seed: number) {
   return () => (s = (s * 16807) % 2147483647) / 2147483647
 }
 
-export function mockOccupancy(orgId: string, siteId: string, month: string, empty = false): OccupancyPayload {
+export function mockOccupancy(orgId: string, siteId: string, month: string, empty = false, snapshotDay?: string): OccupancyPayload {
   if (empty) return { ...EMPTY_PAYLOAD, orgId, siteId, month }
-  const rnd = seededRandom(hashString(`${siteId}|${month}`))
+  const rnd = seededRandom(hashString(`${orgId}|${siteId}|${month}|${snapshotDay || "month-end"}`))
   const months: string[] = []
   const [y, m] = month.split('-').map(Number)
   const end = new Date(Date.UTC(y, m - 1, 1))
@@ -78,9 +78,13 @@ export function mockOccupancy(orgId: string, siteId: string, month: string, empt
     const reserved = Math.floor((total - rented) * (rnd() * 0.6))
     return { floorId: `fl-${f.toLowerCase()}`, floorName: `${f} 层`, rented, reserved, vacant: total - rented - reserved }
   })
+  const total = floors.reduce((sum, f) => sum + f.rented + f.reserved + f.vacant, 0)
+  const rented = floors.reduce((sum, f) => sum + f.rented, 0)
+  const rate = total ? Math.round((rented / total) * 1000) / 10 : 0
+  trend12m[11].rate = rate
   return {
     orgId, siteId, month,
-    rateEnd: Math.round((trend12m[11].rate) * 10) / 10,
+    rateEnd: rate,
     rateMoM: Math.round((trend12m[11].rate - trend12m[10].rate) * 10) / 10,
     trend12m,
     floors,
@@ -91,7 +95,7 @@ export function mockOccupancy(orgId: string, siteId: string, month: string, empt
   }
 }
 
-export async function fetchOccupancy(orgId: string, siteId: string, month: string, empty = false): Promise<OccupancyPayload> {
+export async function fetchOccupancy(orgId: string, siteId: string, month: string, empty = false, snapshotDay?: string): Promise<OccupancyPayload> {
   await new Promise((r) => setTimeout(r, 60))
-  return mockOccupancy(orgId, siteId, month, empty)
+  return mockOccupancy(orgId, siteId, month, empty, snapshotDay)
 }

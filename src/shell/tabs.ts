@@ -1,12 +1,8 @@
-/** 七个页签（#1851 验收第 1 条）。key 会写进 URL，刷新后停留在同一页签。 */
-export interface TabDef { key: string; label: string }
-export const TABS: TabDef[] = [
-  { key: 'overview', label: '总览' },
-  { key: 'occupancy', label: '出租率' },
-  { key: 'expiry', label: '到期与续约' },
-  { key: 'leads', label: '招商线索' },
-  { key: 'members', label: '会员结构' },
-  { key: 'service', label: '服务与工单' },
-  { key: 'metrics', label: '口径与版本' },
-]
-export const TAB_KEYS = TABS.map((t) => t.key)
+export const TABS = [
+  { key: 'overview', label: '总览' }, { key: 'network', label: '网络' },
+  { key: 'funnel', label: '商机漏斗' }, { key: 'sales', label: '招商' },
+  { key: 'success', label: '会员成功' }, { key: 'org-agent', label: '组织与 Agent' },
+  { key: 'finance', label: '财务' },
+] as const
+export type TabKey = typeof TABS[number]['key']
+export const TAB_KEYS = TABS.map(t => t.key)

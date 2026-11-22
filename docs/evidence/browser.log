@@ -1,0 +1,7 @@
+CHROMIUM_PATH=/ms-playwright/chromium-1247/chrome-linux64/chrome
+CAPTURE shell-tabs.png
+CAPTURE panel.png
+CAPTURE panel-empty.png
+CAPTURE card-loading.png
+CAPTURE card-error.png
+PASS browser: screenshots, refresh, chart floor navigation, zero external requests/page errors

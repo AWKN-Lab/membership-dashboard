@@ -1,126 +1,50 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
-import { CardStates } from './shell/CardStates'
-import { MetricTip } from './shell/MetricTip'
-import { TABS } from './shell/tabs'
-import { DEFAULT_FILTERS, filtersToQuery, parseFilters, writeFiltersToUrl, type Filters } from './shell/filters'
+import React, { useState } from 'react'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import Button from 'tdesign-react/es/button'
+import { TABS, type TabKey } from './shell/tabs'
+import { DEMO_ACCESS, filtersToQuery, occupancyFilters, parseFilters, updateFilter, type Access, type Filters, type Period } from './shell/filters'
+import { panelsFor } from './shell/panels'
+import { PanelCard } from './shell/PanelCard'
 import { FloorStateView, OccupancyRatePanel } from './panel/OccupancyRatePanel'
-import { ORGS, SITES } from './mock/api'
 
-/**
- * 驾驶舱前端外壳（#1851）+ 出租率面板（#1896）。
- * 筛选与页签**只存在 URL 里** ⇒ 刷新后保持（验收第 3 条）。
- */
-export default function App() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const [filters, setFilters] = useState<Filters>(() => parseFilters(window.location.search))
-  // empty 是**演示开关**（写进 URL ⇒ 截图可复现）：?empty=1
-  // ⚠️ 真相源统一用**路由的 location**（不是 window.location）⇒ 测试与浏览器行为一致
-  const urlEmpty = new URLSearchParams(location.search).get('empty') === '1'
-  const [emptyOverride, setEmptyOverride] = useState<boolean | null>(null)
-  const empty = emptyOverride === null ? urlEmpty : emptyOverride
-
-  // URL → 状态（刷新/前进后退都跟着走）
-  useEffect(() => {
-    setFilters(parseFilters(location.search))
-    // 页签与筛选**都只存在 URL 里** ⇒ 刷新天然保持；这里不要改写 URL（会把 tab 抹掉）
-  }, [location.search, navigate])
-
-  const tab = useMemo(() => {
-    const t = new URLSearchParams(location.search).get('tab')
-    return t && TABS.some((x) => x.key === t) ? t : TABS[0].key
-  }, [location.search])
-
-  const setFilter = (patch: Partial<Filters>) => {
-    const next = { ...filters, ...patch }
-    setFilters(next)
-    writeFiltersToUrl(next)
-  }
-
-  const setTab = (key: string) => {
-    const q = new URLSearchParams(filtersToQuery(filters))
-    q.set('tab', key)
-    navigate(`/?${q.toString()}`)
-  }
-
-  const forceState = (() => {
-    const v = new URLSearchParams(location.search).get('state')
-    return v === 'loading' || v === 'empty' || v === 'error' ? v : undefined
-  })()
-
-  const isFloorRoute = location.pathname.startsWith('/floors/')
-
-  return (
-    <div className="shell">
-      <header className="shell__header">
-        <span className="shell__title">管理驾驶舱</span>
-        <span style={{ fontSize: 12, opacity: .85 }}>会员空间平台 · Stage iii（演示数据）</span>
-      </header>
-      <div className="shell__body">
-        {!isFloorRoute && (
-          <nav className="sidebar" data-testid="tabs">
-            {TABS.map((t) => (
-              <div key={t.key}
-                   data-testid={`tab-${t.key}`}
-                   className={`sidebar__item${tab === t.key ? ' sidebar__item--active' : ''}`}
-                   onClick={() => setTab(t.key)}>{t.label}</div>
-            ))}
-          </nav>
-        )}
-        <main className="content">
-          <Routes>
-            <Route path="/floors/:floorId" element={<FloorStateView />} />
-            <Route path="*" element={
-              <>
-                <div className="filters" data-testid="filters">
-                  <label className="filters__field">会员空间
-                    <select data-testid="filter-org" value={filters.org_id}
-                            onChange={(e) => setFilter({ org_id: e.target.value })}>
-                      {ORGS.map((o) => <option key={o.orgId} value={o.orgId}>{o.name}</option>)}
-                      {!ORGS.some((o) => o.orgId === filters.org_id) &&
-                        <option value={filters.org_id}>{filters.org_id}（URL 指定）</option>}
-                    </select>
-                  </label>
-                  <label className="filters__field">园区
-                    <select data-testid="filter-site" value={filters.site_id}
-                            onChange={(e) => setFilter({ site_id: e.target.value })}>
-                      {SITES.map((s) => <option key={s.siteId} value={s.siteId}>{s.name}</option>)}
-                      {!SITES.some((x) => x.siteId === filters.site_id) &&
-                        <option value={filters.site_id}>{filters.site_id}（URL 指定）</option>}
-                    </select>
-                  </label>
-                  <label className="filters__field">月份
-                    <input data-testid="filter-month" value={filters.month}
-                           onChange={(e) => setFilter({ month: e.target.value })} />
-                  </label>
-                  <label className="filters__field">状态演示
-                    <select data-testid="filter-state" value={empty ? 'empty' : 'normal'}
-                            onChange={(e) => setEmptyOverride(e.target.value === 'empty')}>
-                      <option value="normal">有数据</option>
-                      <option value="empty">空数据</option>
-                    </select>
-                  </label>
-                </div>
-
-                {tab === 'occupancy' ? (
-                  <OccupancyRatePanel filters={filters} empty={empty} forceState={forceState} />
-                ) : (
-                  <div className="card">
-                    <h3 className="card__title">{TABS.find((t) => t.key === tab)?.label}</h3>
-                    <CardStates state={empty ? 'empty' : 'normal'}>
-                      <MetricTip definition="本页指标的口径说明" version="v1.2" />
-                      <p style={{ fontSize: 13, color: '#4b5563' }}>
-                        该页签在任务 1/5 的范围内仅提供外壳与口径提示；具体面板见「出租率」页签。
-                      </p>
-                    </CardStates>
-                  </div>
-                )}
-              </>
-            } />
-          </Routes>
-        </main>
-      </div>
-    </div>
-  )
+function Dashboard({access}:{access:Access}){
+ const location=useLocation(),navigate=useNavigate()
+ const f=parseFilters(location.search,access)
+ const q=new URLSearchParams(location.search)
+ const tab=(TABS.find(t=>t.key===q.get('tab'))?.key||'overview') as TabKey
+ const state=q.get('state')
+ const forced=state==='loading'||state==='empty'||state==='error'?state:undefined
+ const empty=q.get('empty')==='1'
+ const [start,setStart]=useState(f.start),[end,setEnd]=useState(f.end)
+ // 自定义日期草稿仅在提交时进入 URL。history/popstate 由 router 处理。
+ React.useEffect(()=>{setStart(f.start);setEnd(f.end)},[f.start,f.end])
+ const path=(next:Filters,tabKey:TabKey=tab)=> {
+   const params=new URLSearchParams(filtersToQuery(next,location.search));params.set('tab',tabKey)
+   navigate('/dash?'+params.toString())
+ }
+ // 首次访问将筛选锚定到 URL；越权 group 在 URL 层也被清除。
+ React.useEffect(()=>{
+   const params=new URLSearchParams(filtersToQuery(f,location.search));params.set('tab',tab)
+   const search='?'+params.toString()
+   if(search!==location.search)navigate('/dash'+search,{replace:true})
+ },[location.search,access.siteId,access.canViewGroup])
+ const set=(patch:Partial<Filters>)=>path(updateFilter(f,patch,access))
+ return <div className="shell">
+  <header className="shell__header"><span className="shell__title">管理驾驶舱</span><span>虚构演示数据 · 接口桩</span></header>
+  <div className="shell__body"><nav className="sidebar" aria-label="驾驶舱页签" data-testid="tabs">
+   {TABS.map(t=><button type="button" key={t.key} data-testid={'tab-'+t.key} aria-current={tab===t.key?'page':undefined} className={'sidebar__item'+(tab===t.key?' sidebar__item--active':'')} onClick={()=>path(f,t.key)}>{t.label}</button>)}
+  </nav><main className="content">
+  <div className="filters" data-testid="filters">
+   <label className="filters__field">会所<select aria-label="会所" value={f.scope} onChange={e=>set({scope:e.target.value==='group'?'group':'site'})}><option value="site">本会所</option>{access.canViewGroup&&<option value="group">集团</option>}</select></label>
+   <label className="filters__field">时间范围<select aria-label="时间范围" value={f.period} onChange={e=>set({period:e.target.value as Period})}><option value="this-month">本月</option><option value="last-month">上月</option><option value="this-quarter">本季度</option><option value="custom">自定义</option></select></label>
+   {f.period==='custom'?<><label className="filters__field">开始<input type="date" value={start} onChange={e=>setStart(e.target.value)}/></label><label className="filters__field">结束<input type="date" value={end} onChange={e=>setEnd(e.target.value)}/></label><Button disabled={!start||!end||start>end} onClick={()=>set({start,end})}>应用</Button></>:<span className="date-range">{f.start} 至 {f.end}</span>}
+   <label className="filters__field">对比方式<select aria-label="对比方式" value={f.comparison} onChange={e=>set({comparison:e.target.value==='yoy'?'yoy':'mom'})}><option value="mom">环比</option><option value="yoy">同比</option></select></label>
+  </div>
+  {panelsFor(tab).map(p=>p.kind==='occupancy'?<OccupancyRatePanel key={p.id} filters={occupancyFilters(f,access)} asOf={f.end} comparison={f.comparison} empty={empty} forceState={forced}/>:<PanelCard key={p.id} meta={p} state={forced||'empty'} />)}
+  </main></div>
+ </div>
+}
+export default function App({access=DEMO_ACCESS}:{access?:Access}){
+ const l=useLocation()
+ return <Routes><Route path="/dash" element={<Dashboard access={access}/>}/><Route path="/floors/:floorId" element={<FloorStateView/>}/><Route path="*" element={<Navigate to={'/dash'+l.search} replace/>}/></Routes>
 }

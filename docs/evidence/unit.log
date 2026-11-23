@@ -4,24 +4,25 @@
 
 [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
 
- RUN  v2.1.9 /home/clawhunt-deploy/clawhunt-gpt-work/1851-1896-20261122/repo
+ RUN  v2.1.9 /tmp/clawhunt-1851-r1-JD69iW/repo
 
-stderr | tests/panel.test.tsx > occupancy > renders actual ECharts SVG legend and segment values, not a substitute DOM chart
-⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
-⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
-
- ✓ tests/panel.test.tsx (6 tests) 1035ms
-   ✓ occupancy > renders actual ECharts SVG legend and segment values, not a substitute DOM chart 439ms
 stderr | tests/shell.test.tsx > shell > exact tabs, eight registry entries and finance only two
 ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
 ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
 
- ✓ tests/shell.test.tsx (6 tests) 323ms
+ ✓ tests/shell.test.tsx (16 tests) 1088ms
+   ✓ shell > does not render export controls without permission 371ms
+stderr | tests/panel.test.tsx > occupancy > renders actual ECharts SVG legend and segment values, not a substitute DOM chart
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ✓ tests/panel.test.tsx (8 tests) 1056ms
+   ✓ occupancy > renders actual ECharts SVG legend and segment values, not a substitute DOM chart 507ms
  ✓ tests/filters.test.ts (4 tests) 12ms
- ✓ tests/noExternal.test.ts (2 tests) 14ms
+ ✓ tests/noExternal.test.ts (2 tests) 16ms
 
  Test Files  4 passed (4)
-      Tests  18 passed (18)
-   Start at  10:53:28
-   Duration  15.48s (transform 882ms, setup 2.63s, collect 4.91s, tests 1.38s, environment 4.57s, prepare 523ms)
+      Tests  30 passed (30)
+   Start at  11:33:24
+   Duration  18.37s (transform 899ms, setup 3.51s, collect 4.81s, tests 2.17s, environment 5.87s, prepare 509ms)
 

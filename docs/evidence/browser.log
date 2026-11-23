@@ -1,4 +1,10 @@
-CHROMIUM_PATH=/ms-playwright/chromium-1247/chrome-linux64/chrome
+CAPTURE tab-overview.png
+CAPTURE tab-network.png
+CAPTURE tab-funnel.png
+CAPTURE tab-sales.png
+CAPTURE tab-success.png
+CAPTURE tab-org-agent.png
+CAPTURE tab-finance.png
 CAPTURE shell-tabs.png
 CAPTURE panel.png
 CAPTURE panel-empty.png

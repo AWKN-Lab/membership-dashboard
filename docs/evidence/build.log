@@ -8,11 +8,11 @@ transforming...
 ✓ 1400 modules transformed.
 rendering chunks...
 dist/index.html                   0.40 kB
-dist/assets/index-BZWnJEud.css   60.31 kB
-dist/assets/index-B4CkxjMl.js   789.48 kB
+dist/assets/index-Bhs6b0nq.css   60.43 kB
+dist/assets/index-Bzj4bVGj.js   790.08 kB
 
 (!) Some chunks are larger than 500 kB after minification. Consider:
 - Using dynamic import() to code-split the application
 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
-✓ built in 8.62s
+✓ built in 10.32s

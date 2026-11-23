@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """把交付仓推到 GitHub（Contents API 点亮空仓 → Git Data API 推全部 → 逐字节回读核对）。"""
-import base64, hashlib, json, os, pathlib, sys, time, urllib.request, urllib.error
+import base64, hashlib, json, os, pathlib, sys, time, urllib.request
 
 TOKEN = os.environ.get("GITHUB_TOKEN_REPO") or os.environ.get("GITHUB_TOKEN")
-OWNER, REPO = "AWKN-Lab", "membership-dashboard"
-BRANCH = "main"
+OWNER, REPO, BRANCH = "AWKN-Lab", "membership-dashboard", "main"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SKIP_DIRS = {"node_modules", "dist", ".git"}
 SKIP_FILES = {"tsconfig.tsbuildinfo", ".npmrc"}
@@ -37,13 +36,6 @@ def files():
 
 
 def main():
-    import argparse
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--branch", default=BRANCH)
-    ap.add_argument("--merge-main", action="store_true", help="推完后把 main 快进到该提交")
-    ap.add_argument("--message", default="feat: 会员空间管理驾驶舱前端（#1851 外壳 + #1896 出租率面板）")
-    args = ap.parse_args()
-    branch = args.branch
     fl = files()
     print(f"  待推 {len(fl)} 个文件")
 
@@ -59,16 +51,8 @@ def main():
         print(f"  ⚠️ README PUT 失败: {e.code} {e.read()[:200]}")
 
     time.sleep(1)
-    # 分支不存在 ⇒ 从 main 开一条（保留独立分支，便于复核方对比）
-    try:
-        ref = req("GET", f"{API}/git/ref/heads/{branch}")
-        base_commit = ref["object"]["sha"]
-        print(f"  分支 {branch} 已存在，基于 {base_commit[:8]}")
-    except urllib.error.HTTPError:
-        main_ref = req("GET", f"{API}/git/ref/heads/main")
-        base_commit = main_ref["object"]["sha"]
-        req("POST", f"{API}/git/refs", {"ref": f"refs/heads/{branch}", "sha": base_commit})
-        print(f"  新建分支 {branch}（基于 main {base_commit[:8]}）")
+    ref = req("GET", f"{API}/git/ref/heads/{BRANCH}")
+    base_commit = ref["object"]["sha"]
     base_tree = req("GET", f"{API}/git/commits/{base_commit}")["tree"]["sha"]
     print(f"  base commit {base_commit[:8]} / tree {base_tree[:8]}")
 
@@ -83,7 +67,7 @@ def main():
     tree = req("POST", f"{API}/git/trees", {
         "base_tree": base_tree, "tree": entries, "truncate": True})
     commit = req("POST", f"{API}/git/commits", {
-        "message": args.message + "\n\n"
+        "message": "feat: 会员空间管理驾驶舱前端（#1851 外壳 + #1896 出租率面板）\n\n"
                    "- 七个页签 + 全局筛选（筛选/页签只存 URL ⇒ 刷新保持）\n"
                    "- 卡片三态（loading/empty/error，空态不把 0 画成数据）\n"
                    "- 口径提示含定义与版本号 v1.2\n"
@@ -92,16 +76,11 @@ def main():
                    "- 14 项单测全绿；构建产物零外部域名；4 张验收截图\n"
                    "- 变异自证 3/3 因正确原因变红（改行为不改名，复原后 sha256 一致）",
         "tree": tree["sha"], "parents": [base_commit]})
-    req("PATCH", f"{API}/git/refs/heads/{branch}", {"sha": commit["sha"], "force": False})
-    print(f"  ✅ 推送完成 分支={branch} commit {commit['sha'][:8]}")
-    if args.merge_main:
-        main_head = req("GET", f"{API}/git/ref/heads/main")["object"]["sha"]
-        if commit["sha"] != main_head:
-            req("PATCH", f"{API}/git/refs/heads/main", {"sha": commit["sha"], "force": False})
-            print(f"  ✅ main 已快进到 {commit['sha'][:8]}（原 {main_head[:8]}）")
+    req("PATCH", f"{API}/git/refs/heads/{BRANCH}", {"sha": commit["sha"], "force": False})
+    print(f"  ✅ 推送完成 commit {commit['sha'][:8]}")
 
     # ③ 回读逐字节核对（独立 GET）
-    head = req("GET", f"{API}/git/ref/heads/{branch}")["object"]["sha"]
+    head = req("GET", f"{API}/git/ref/heads/{BRANCH}")["object"]["sha"]
     remote_tree = req("GET", f"{API}/git/trees/{req('GET', f'{API}/git/commits/{head}')['tree']['sha']}?recursive=1")
     remote = {t["path"]: t["sha"] for t in remote_tree["tree"] if t["type"] == "blob"}
     ok = bad = 0

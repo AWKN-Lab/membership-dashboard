@@ -1,82 +1,45 @@
-/**
- * 全局筛选 ⇄ URL（客户约定：筛选条件写入 URL，刷新后保留）。
- *
- * 三类筛选：
- *   1. 会所：本会所 / 集团（**按权限显示**——无集团权限时列表里没有「集团」）
- *   2. 时间范围：本月 / 上月 / 本季度 / 自定义（自定义需 from/to）
- *   3. 对比方式：环比 / 同比
- *
- * 实现要点：筛选**只存在 URL query**（唯一真相源）⇒ 刷新天然保持，组件不另存 state。
- */
-export type Venue = 'club' | 'cluster'
-export type RangeKey = 'this_month' | 'last_month' | 'this_quarter' | 'custom'
-export type Compare = 'mom' | 'yoy'
-
-export interface Filters {
-  venue: Venue
-  range: RangeKey
-  from: string
-  to: string
-  compare: Compare
+export type Period = 'this-month' | 'last-month' | 'this-quarter' | 'custom'
+export type Comparison = 'mom' | 'yoy'
+export type Scope = 'site' | 'group'
+export interface Filters { scope: Scope; period: Period; start: string; end: string; comparison: Comparison }
+export interface Access { siteId: string; canViewGroup: boolean; canExport?: boolean }
+export const DEMO_ACCESS: Access = { siteId: 'site-demo-a', canViewGroup: true, canExport: true }
+const day = (d: Date) => d.toISOString().slice(0,10)
+const validDate = (s: string | null): s is string => {
+  if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false
+  const d = new Date(s+'T00:00:00Z')
+  return !isNaN(d.getTime()) && day(d)===s
 }
-
-export const VENUE_LABEL: Record<Venue, string> = { club: '本会所', cluster: '集团' }
-export const RANGE_LABEL: Record<RangeKey, string> = {
-  this_month: '本月',
-  last_month: '上月',
-  this_quarter: '本季度',
-  custom: '自定义',
+export function periodRange(period: Exclude<Period,'custom'>, now = new Date()): Pick<Filters,'start'|'end'> {
+  const y=now.getUTCFullYear(), m=now.getUTCMonth()
+  const first=period==='last-month'?m-1:period==='this-quarter'?Math.floor(m/3)*3:m
+  const last=period==='last-month'?m:period==='this-quarter'?first+3:m+1
+  return {start:day(new Date(Date.UTC(y,first,1))),end:day(new Date(Date.UTC(y,last,0)))}
 }
-export const COMPARE_LABEL: Record<Compare, string> = { mom: '环比', yoy: '同比' }
-
-export const DEFAULT_FILTERS: Filters = {
-  venue: 'club',
-  range: 'this_month',
-  from: '2026-11-01',
-  to: '2026-11-30',
-  compare: 'mom',
+export function parseFilters(search:string, access:Access=DEMO_ACCESS, now=new Date()):Filters {
+  const q=new URLSearchParams(search)
+  const scope=q.get('scope')==='group'&&access.canViewGroup?'group':'site'
+  const comparison=q.get('comparison')==='yoy'?'yoy':'mom'
+  let period:Period='this-month'
+  const p=q.get('period'); if(p==='last-month'||p==='this-quarter'||p==='custom')period=p
+  const start=q.get('start'), end=q.get('end')
+  if(period==='custom'&&validDate(start)&&validDate(end)&&start<=end)return {scope,period,start,end,comparison}
+  if(period==='custom')period='this-month'
+  // 已写入 URL 的合法锚定日期在刷新后保持；预设由选择动作重新计算。
+  const range=validDate(start)&&validDate(end)&&start<=end?{start,end}:periodRange(period,now)
+  return {scope,period,...range,comparison}
 }
-
-export interface Permission {
-  /** 能否看到「集团」维度（客户约定：会所按权限显示） */
-  canViewCluster: boolean
-}
-
-export function parseFilters(search: string): Filters {
-  const q = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
-  const venue = q.get('venue') === 'cluster' ? 'cluster' : 'club'
-  const r = q.get('range')
-  const range: RangeKey =
-    r === 'last_month' || r === 'this_quarter' || r === 'custom' ? r : 'this_month'
-  const compare: Compare = q.get('compare') === 'yoy' ? 'yoy' : 'mom'
-  return {
-    venue,
-    range,
-    from: q.get('from') || DEFAULT_FILTERS.from,
-    to: q.get('to') || DEFAULT_FILTERS.to,
-    compare,
-  }
-}
-
-export function filtersToQuery(f: Filters): string {
-  const q = new URLSearchParams()
-  q.set('venue', f.venue)
-  q.set('range', f.range)
-  // from/to 始终写入（自定义范围要用；固定范围也保留上次的自定义值 ⇒ 往返幂等）
-  q.set('from', f.from)
-  q.set('to', f.to)
-  q.set('compare', f.compare)
+export function filtersToQuery(f:Filters, search=''):string {
+  const q=new URLSearchParams(search)
+  for(const [k,v] of Object.entries(f))q.set(k,v)
   return q.toString()
 }
-
-export function writeFiltersToUrl(f: Filters, win: Window = window): void {
-  const url = `${win.location.pathname}?${filtersToQuery(f)}`
-  win.history.replaceState({}, '', url)
+export function updateFilter(f:Filters, patch:Partial<Filters>, access:Access=DEMO_ACCESS, now=new Date()):Filters {
+  const next={...f,...patch}
+  if(patch.period&&patch.period!=='custom')Object.assign(next,periodRange(patch.period,now))
+  if(!access.canViewGroup)next.scope='site'
+  return next
 }
-
-/** 可选会所列表（按权限） */
-export function venueOptions(perm: Permission): { value: Venue; label: string }[] {
-  const list = [{ value: 'club' as Venue, label: VENUE_LABEL.club }]
-  if (perm.canViewCluster) list.push({ value: 'cluster' as Venue, label: VENUE_LABEL.cluster })
-  return list
+export function occupancyFilters(f:Filters, access:Access=DEMO_ACCESS) {
+  return {org_id:'org-demo',site_id:f.scope==='group'&&access.canViewGroup?'group-demo':access.siteId,month:f.end.slice(0,7)}
 }

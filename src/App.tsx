@@ -1,207 +1,51 @@
-import { useMemo } from 'react'
-import { useLocation, useNavigate, useParams, Route, Routes } from 'react-router-dom'
-import { TABS, DEFAULT_TAB, isTab } from './shell/tabs'
-import { PANELS, panelsOfTab, type PanelDef } from './shell/panelRegistry'
-import {
-  parseFilters,
-  filtersToQuery,
-  venueOptions,
-  RANGE_LABEL,
-  COMPARE_LABEL,
-  type Filters,
-  type RangeKey,
-  type Compare,
-  type Venue,
-} from './shell/filters'
-import { CardFrame } from './shell/CardFrame'
-import { PanelContent, downloadCsv, type PanelStatus } from './panels/PanelContent'
-import { mockPermission } from './mock/api'
+import React, { useState } from 'react'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import Button from 'tdesign-react/es/button'
+import { TABS, type TabKey } from './shell/tabs'
+import { DEMO_ACCESS, filtersToQuery, occupancyFilters, parseFilters, updateFilter, type Access, type Filters, type Period } from './shell/filters'
+import { panelsFor } from './shell/panels'
+import { PanelCard } from './shell/PanelCard'
+import { FloorStateView, OccupancyRatePanel } from './panel/OccupancyRatePanel'
 
-function useQuery() {
-  const location = useLocation()
-  return useMemo(() => new URLSearchParams(location.search), [location.search])
+function Dashboard({access}:{access:Access}){
+ const location=useLocation(),navigate=useNavigate()
+ const f=parseFilters(location.search,access)
+ const todayUtc=new Date().toISOString().slice(0,10)
+ const q=new URLSearchParams(location.search)
+ const tab=(TABS.find(t=>t.key===q.get('tab'))?.key||'overview') as TabKey
+ const state=q.get('state')
+ const forced=state==='loading'||state==='empty'||state==='error'?state:undefined
+ const empty=q.get('empty')==='1'
+ const [start,setStart]=useState(f.start),[end,setEnd]=useState(f.end)
+ // 自定义日期草稿仅在提交时进入 URL。history/popstate 由 router 处理。
+ React.useEffect(()=>{setStart(f.start);setEnd(f.end)},[f.start,f.end])
+ const path=(next:Filters,tabKey:TabKey=tab)=> {
+   const params=new URLSearchParams(filtersToQuery(next,location.search));params.set('tab',tabKey)
+   navigate('/dash?'+params.toString())
+ }
+ // 首次访问将筛选锚定到 URL；越权 group 在 URL 层也被清除。
+ React.useEffect(()=>{
+   const params=new URLSearchParams(filtersToQuery(f,location.search));params.set('tab',tab)
+   const search='?'+params.toString()
+   if(search!==location.search)navigate('/dash'+search,{replace:true})
+ },[location.search,access.siteId,access.canViewGroup])
+ const set=(patch:Partial<Filters>)=>path(updateFilter(f,patch,access))
+ return <div className="shell">
+  <header className="shell__header"><span className="shell__title">管理驾驶舱</span><span>虚构演示数据 · 接口桩</span></header>
+  <div className="shell__body"><nav className="sidebar" aria-label="驾驶舱页签" data-testid="tabs">
+   {TABS.map(t=><button type="button" key={t.key} data-testid={'tab-'+t.key} aria-current={tab===t.key?'page':undefined} className={'sidebar__item'+(tab===t.key?' sidebar__item--active':'')} onClick={()=>path(f,t.key)}>{t.label}</button>)}
+  </nav><main className="content">
+  <div className="filters" data-testid="filters">
+   <label className="filters__field">会所<select aria-label="会所" value={f.scope} onChange={e=>set({scope:e.target.value==='group'?'group':'site'})}><option value="site">本会所</option>{access.canViewGroup&&<option value="group">集团</option>}</select></label>
+   <label className="filters__field">时间范围<select aria-label="时间范围" value={f.period} onChange={e=>set({period:e.target.value as Period})}><option value="this-month">本月</option><option value="last-month">上月</option><option value="this-quarter">本季度</option><option value="custom">自定义</option></select></label>
+   {f.period==='custom'?<><label className="filters__field">开始<input type="date" value={start} onChange={e=>setStart(e.target.value)}/></label><label className="filters__field">结束<input type="date" value={end} onChange={e=>setEnd(e.target.value)}/></label><Button disabled={!start||!end||start>end} onClick={()=>set({start,end})}>应用</Button></>:<span className="date-range">{f.start} 至 {f.end}</span>}
+   <label className="filters__field">对比方式<select aria-label="对比方式" value={f.comparison} onChange={e=>set({comparison:e.target.value==='yoy'?'yoy':'mom'})}><option value="mom">环比</option><option value="yoy">同比</option></select></label>
+  </div>
+  {panelsFor(tab).map(p=>p.kind==='occupancy'?<OccupancyRatePanel key={p.id} filters={occupancyFilters(f,access)} asOf={f.end<todayUtc?f.end:todayUtc} comparison={f.comparison} empty={empty} forceState={forced} canExport={access.canExport===true}/>:<PanelCard key={p.id} meta={p} state={forced||'empty'} canExport={access.canExport===true} />)}
+  </main></div>
+ </div>
 }
-
-export default function App() {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const q = useQuery()
-  const tabKey = q.get('tab') ?? DEFAULT_TAB
-  const tab = isTab(tabKey) ? tabKey : DEFAULT_TAB
-  const filters = useMemo(() => parseFilters(location.search), [location.search])
-  const perm = mockPermission(location.search)
-  const forced = q.get('state')
-  const forceState: PanelStatus | undefined =
-    forced === 'loading' || forced === 'empty' || forced === 'error' ? forced : undefined
-
-  /** 改筛选：写回 URL（保留 tab / state / perm 等其余参数）⇒ 刷新后保持 */
-  function updateFilters(patch: Partial<Filters>) {
-    const next = { ...filters, ...patch }
-    const merged = new URLSearchParams(filtersToQuery(next))
-    for (const k of ['tab', 'state', 'perm']) {
-      const v = q.get(k)
-      if (v) merged.set(k, v)
-    }
-    navigate({ pathname: location.pathname, search: merged.toString() })
-  }
-
-  function gotoTab(key: string) {
-    const merged = new URLSearchParams(location.search)
-    merged.set('tab', key)
-    navigate({ pathname: location.pathname, search: merged.toString() })
-  }
-
-  return (
-    <div className="shell">
-      <header className="shell__header">
-        <span className="shell__title">管理驾驶舱</span>
-        <span className="shell__sub">会员空间平台 · Stage iii（演示数据）</span>
-      </header>
-      <div className="shell__body">
-        <nav className="sidebar" data-testid="tabs">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              className={t.key === tab ? 'sidebar__item sidebar__item--active' : 'sidebar__item'}
-              data-testid={`tab-${t.key}`}
-              onClick={() => gotoTab(t.key)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </nav>
-        <main className="main">
-          <div className="filters" data-testid="filters">
-            <label className="filters__field">
-              会所
-              <select
-                data-testid="filter-venue"
-                value={filters.venue}
-                onChange={(e) => updateFilters({ venue: e.target.value as Venue })}
-              >
-                {venueOptions(perm).map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="filters__field">
-              时间范围
-              <select
-                data-testid="filter-range"
-                value={filters.range}
-                onChange={(e) => updateFilters({ range: e.target.value as RangeKey })}
-              >
-                {(Object.keys(RANGE_LABEL) as RangeKey[]).map((k) => (
-                  <option key={k} value={k}>
-                    {RANGE_LABEL[k]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {filters.range === 'custom' && (
-              <>
-                <label className="filters__field">
-                  起
-                  <input
-                    data-testid="filter-from"
-                    value={filters.from}
-                    onChange={(e) => updateFilters({ from: e.target.value })}
-                  />
-                </label>
-                <label className="filters__field">
-                  止
-                  <input
-                    data-testid="filter-to"
-                    value={filters.to}
-                    onChange={(e) => updateFilters({ to: e.target.value })}
-                  />
-                </label>
-              </>
-            )}
-            <label className="filters__field">
-              对比方式
-              <select
-                data-testid="filter-compare"
-                value={filters.compare}
-                onChange={(e) => updateFilters({ compare: e.target.value as Compare })}
-              >
-                {(Object.keys(COMPARE_LABEL) as Compare[]).map((k) => (
-                  <option key={k} value={k}>
-                    {COMPARE_LABEL[k]}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {panelsOfTab(tab).map((p) => (
-            <PanelCard key={p.id} panel={p} filters={filters} forceState={forceState} />
-          ))}
-        </main>
-      </div>
-    </div>
-  )
-}
-
-function PanelCard({
-  panel,
-  filters,
-  forceState,
-}: {
-  panel: PanelDef
-  filters: Filters
-  forceState?: PanelStatus
-}) {
-  return (
-    <CardFrame
-      title={panel.title}
-      metricKey={panel.metricKey}
-      updatedAt={panel.updatedAt}
-      onExport={
-        panel.exportColumns
-          ? () => downloadCsv(`${panel.id}.csv`, panel.exportColumns!, [])
-          : undefined
-      }
-    >
-      <PanelContent panelId={panel.id} filters={filters} forceState={forceState} />
-    </CardFrame>
-  )
-}
-
-/** 房态视图（由业务员工作台提供页面路由，带楼层参数）—— 本仓只做路由与参数透传 */
-export function FloorView() {
-  const { floorId } = useParams()
-  const q = useQuery()
-  return (
-    <div className="shell">
-      <header className="shell__header">
-        <span className="shell__title">房态视图</span>
-        <span className="shell__sub">楼层参数：{floorId}</span>
-      </header>
-      <div className="shell__body">
-        <div className="main">
-          <div className="card">
-            <div data-testid="floor-view">
-              {`${floorId}|${q.get('venue')}|${q.get('range')}|${q.get('compare')}`}
-            </div>
-            <p className="muted">
-              房态视图的真实数据由业务员工作台（任务 3）提供；本仓按客户约定只负责「带楼层参数的路由」。
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function AppRoutes() {
-  return (
-    <Routes>
-      <Route path="/" element={<App />} />
-      <Route path="/dash" element={<App />} />
-      <Route path="/floors/:floorId" element={<FloorView />} />
-    </Routes>
-  )
+export default function App({access=DEMO_ACCESS}:{access?:Access}){
+ const l=useLocation()
+ return <Routes><Route path="/dash" element={<Dashboard access={access}/>}/><Route path="/floors/:floorId" element={<FloorStateView/>}/><Route path="*" element={<Navigate to={'/dash'+l.search} replace/>}/></Routes>
 }

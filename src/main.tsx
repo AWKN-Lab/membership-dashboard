@@ -1,14 +1,15 @@
 import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
+import App from './App'
+import 'tdesign-react/es/button/style/index.css'
+import 'tdesign-react/es/tooltip/style/index.css'
 import './styles.css'
-import './design/tokens.css'
-import { AppRoutes } from './App'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
-      <AppRoutes />
+      <App />
     </BrowserRouter>
   </React.StrictMode>,
 )

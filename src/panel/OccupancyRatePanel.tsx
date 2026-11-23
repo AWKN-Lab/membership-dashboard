@@ -1,120 +1,42 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { CardStates } from '../shell/CardStates'
-import { MetricTip } from '../shell/MetricTip'
-import { BucketBar, StackedBarByFloor, TrendLine } from './charts'
-import { fetchOccupancy, type CardState, type OccupancyPayload } from '../mock/api'
-
-const SEG = {
-  rented: { key: 'rented', label: '已租', color: '#0052d9' },
-  reserved: { key: 'reserved', label: '预留', color: '#e37318' },
-  vacant: { key: 'vacant', label: '空置', color: '#8b949e' },
+import React,{useEffect,useState} from 'react'
+import {useNavigate,useParams,useLocation} from 'react-router-dom'
+import {PanelCard,type PanelMeta} from '../shell/PanelCard'
+import {TrendLine,StackedBarByFloor,BucketBar} from './charts'
+import {fetchOccupancy,mockOccupancy,type OccupancyPayload,type CardState} from '../mock/api'
+const SEG=[{key:'rented',label:'已租',color:'--dash-chart-primary'},{key:'reserved',label:'预留',color:'--dash-chart-reserved'},{key:'vacant',label:'空置',color:'--dash-chart-vacant'}] as const
+const metric=(title:string,definition:string,version='v1.2'):PanelMeta=>({title,definition,version})
+export function OccupancyRatePanel({filters,asOf,comparison='mom',empty=false,forceState,canExport=false}:{
+ filters:{org_id:string;site_id:string;month:string};asOf?:string;comparison?:'mom'|'yoy';empty?:boolean;forceState?:'loading'|'empty'|'error';canExport?:boolean
+}){
+ const [data,setData]=useState<OccupancyPayload|null>(null),[state,setState]=useState<CardState>('loading'),[attempt,retry]=useState(0)
+ const navigate=useNavigate()
+ useEffect(()=>{
+  let alive=true;setData(null)
+  if(forceState){setState(forceState);return()=>{alive=false}}
+  setState('loading')
+  fetchOccupancy(filters.org_id,filters.site_id,filters.month,empty,asOf).then(d=>{if(alive){setData(d);setState(empty?'empty':'normal')}}).catch(()=>{if(alive)setState('error')})
+  return()=>{alive=false}
+ },[filters.org_id,filters.site_id,filters.month,empty,forceState,attempt,asOf])
+ const rows=(data?.floors||[]).map(f=>({floorId:f.floorId,floorName:f.floorName,parts:SEG.map(s=>({...s,value:f[s.key]}))}))
+ const goFloor=(floorId:string)=>{const q=new URLSearchParams(filters);navigate('/floors/'+encodeURIComponent(floorId)+'?'+q.toString())}
+ const actualAsOf=state==='normal'?data?.dataAsOf:undefined
+ const props={state,asOf:actualAsOf,canExport,onRetry:()=>retry(a=>a+1)}
+ const yr=Number(filters.month.slice(0,4))-1
+ const priorYear=mockOccupancy(filters.org_id,filters.site_id,String(yr)+filters.month.slice(4),false,asOf?String(yr)+asOf.slice(4):undefined).rateEnd
+ const yoy=data?data.rateEnd-priorYear:0
+ return <div data-testid="occupancy-panel">
+  <PanelCard {...props} meta={metric('出租率','已租工位 ÷ 可租工位（期末值）；环比 = 本期末 − 上期末（百分点）')} exportRows={data?[['指标','数值'],['期末出租率',data.rateEnd],['环比',data.rateMoM],['同比',yoy.toFixed(1)]]:undefined}>
+   <span className="card__metric" data-testid="rate-end">{data?.rateEnd.toFixed(1)}%</span>
+   <span data-testid="rate-mom"> 环比 {data?.rateMoM.toFixed(1)}pp</span>
+   {comparison==='yoy'&&<span data-testid="rate-yoy"> 同比 {yoy.toFixed(1)}pp</span>}
+  </PanelCard>
+  <PanelCard {...props} meta={metric('近 12 个月出租率趋势','每月末出租率（%）')} exportRows={data?[['月份','出租率'],...data.trend12m.map(d=>[d.month,d.rate])]:undefined}><TrendLine data={data?.trend12m||[]}/></PanelCard>
+  <PanelCard {...props} meta={metric('按楼层工位结构','已租、预留、空置工位数互斥')} exportRows={data?[['楼层','已租','预留','空置'],...data.floors.map(f=>[f.floorName,f.rented,f.reserved,f.vacant])]:undefined}><StackedBarByFloor rows={rows} onFloorClick={goFloor}/></PanelCard>
+  <PanelCard {...props} meta={metric('到期工位分桶','到期日距离统计时点：0–30、31–60、61–90 天')} exportRows={data?[['区间','工位数'],['0–30',data.expiring.bucket30],['31–60',data.expiring.bucket60],['61–90',data.expiring.bucket90]]:undefined}><BucketBar data={[data?.expiring.bucket30||0,data?.expiring.bucket60||0,data?.expiring.bucket90||0]} labels={['0–30 天','31–60 天','61–90 天']}/></PanelCard>
+  <PanelCard {...props} meta={metric('续约率趋势','每月续约率（%），演示口径')} exportRows={data?[['月份','续约率'],...data.renewalTrend.map(d=>[d.month,d.rate])]:undefined}><TrendLine data={data?.renewalTrend||[]}/></PanelCard>
+ </div>
 }
-
-/**
- * 出租率面板（#1896）。
- * 范围：出租率指标卡（期末值 + 环比）、12 个月趋势折线、按楼层的堆叠条形（已租/预留/空置，
- * 图例 + 条内数值标签同时标注）、到期工位分桶（30/60/90 天）、续约率趋势、
- * 点击楼层跳转房态视图（URL 带楼层参数）。接口先用 mock。
- */
-export function OccupancyRatePanel({
-  filters, empty = false, forceState,
-}: {
-  filters: { org_id: string; site_id: string; month: string }
-  empty?: boolean
-  forceState?: 'loading' | 'empty' | 'error'
-}) {
-  const [data, setData] = useState<OccupancyPayload | null>(null)
-  const [state, setState] = useState<CardState>('loading')
-  const navigate = useNavigate()
-
-  useEffect(() => {
-    let alive = true
-    if (forceState) { setState(forceState); return () => { alive = false } }
-    setState('loading')
-    fetchOccupancy(filters.org_id, filters.site_id, filters.month, empty)
-      .then((d) => { if (alive) { setData(d); setState(empty ? 'empty' : 'normal') } })
-      .catch(() => { if (alive) setState('error') })
-    return () => { alive = false }
-  }, [filters.org_id, filters.site_id, filters.month, empty, forceState])
-
-  const rows = useMemo(() => (data?.floors ?? []).map((f) => ({
-    floorId: f.floorId,
-    floorName: f.floorName,
-    parts: [
-      { ...SEG.rented, value: f.rented },
-      { ...SEG.reserved, value: f.reserved },
-      { ...SEG.vacant, value: f.vacant },
-    ],
-  })), [data])
-
-  // 点击楼层 ⇒ 跳到房态视图路由，URL 带楼层参数
-  const goFloor = (floorId: string) => {
-    const q = new URLSearchParams({ org_id: filters.org_id, site_id: filters.site_id, month: filters.month })
-    navigate(`/floors/${floorId}?${q.toString()}`)
-  }
-
-  return (
-    <div data-testid="occupancy-panel">
-      <div className="card">
-        <h3 className="card__title">出租率</h3>
-        <CardStates state={state}>
-          <div>
-            <span className="card__metric" data-testid="rate-end">
-              {Number.isFinite(data?.rateEnd) ? `${data!.rateEnd.toFixed(1)}%` : '—'}
-            </span>
-            <span data-testid="rate-mom" style={{ marginLeft: 10, fontSize: 13, color: (data?.rateMoM ?? 0) >= 0 ? '#2ba471' : '#d54941' }}>
-              环比 {Number.isFinite(data?.rateMoM) ? `${(data!.rateMoM ?? 0) >= 0 ? '+' : ''}${data!.rateMoM.toFixed(1)}pp` : '—'}
-            </span>
-            <MetricTip definition={data?.metricDefinition ?? ''} version={data?.metricVersion ?? ''} />
-          </div>
-        </CardStates>
-      </div>
-
-      <div className="card">
-        <h3 className="card__title">近 12 个月出租率趋势</h3>
-        <CardStates state={state}><TrendLine data={data?.trend12m ?? []} /></CardStates>
-      </div>
-
-      <div className="card">
-        <h3 className="card__title">按楼层工位结构（点击楼层查看房态）</h3>
-        <CardStates state={state}>
-          <StackedBarByFloor rows={rows} onFloorClick={goFloor} />
-        </CardStates>
-      </div>
-
-      <div className="card">
-        <h3 className="card__title">到期工位分桶</h3>
-        <CardStates state={state}>
-          <BucketBar data={[data?.expiring.bucket30 ?? 0, data?.expiring.bucket60 ?? 0, data?.expiring.bucket90 ?? 0]}
-                     labels={['30 天内', '60 天内', '90 天内']} />
-        </CardStates>
-      </div>
-
-      <div className="card">
-        <h3 className="card__title">续约率趋势</h3>
-        <CardStates state={state}><TrendLine data={data?.renewalTrend ?? []} /></CardStates>
-      </div>
-    </div>
-  )
-}
-
-/** 房态视图（由业务员工作台提供页面路由）—— #1896 的跳转落点，URL 带楼层参数。 */
-export function FloorStateView() {
-  const { floorId } = useParams()
-  const [params] = useState(() => new URLSearchParams(window.location.search))
-  return (
-    <div className="floor-panel" data-testid="floor-view">
-      <h3 className="card__title">房态视图</h3>
-      <table className="mini">
-        <tbody>
-          <tr><th>楼层</th><td data-testid="floor-id">{floorId}</td></tr>
-          <tr><th>园区</th><td>{params.get('site_id')}</td></tr>
-          <tr><th>月份</th><td>{params.get('month')}</td></tr>
-          <tr><th>会员空间</th><td>{params.get('org_id')}</td></tr>
-        </tbody>
-      </table>
-      <p style={{ fontSize: 12, color: '#6b7785' }}>对接点：房态数据由任务 3（业务员工作台）提供，当前为 mock。</p>
-    </div>
-  )
+export function FloorStateView(){
+ const {floorId}=useParams(),{search}=useLocation(),q=new URLSearchParams(search)
+ return <div className="floor-panel" data-testid="floor-view"><h3>房态视图（接口桩）</h3><p data-testid="floor-id">{floorId}</p><p>{q.get('site_id')} · {q.get('month')}</p><p>业务员工作台房态路由对接点：/floors/:floorId</p></div>
 }

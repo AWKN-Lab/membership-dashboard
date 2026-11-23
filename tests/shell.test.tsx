@@ -1,75 +1,49 @@
-import { describe, expect, it } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import {describe,it,expect} from 'vitest'
+import {render,screen,fireEvent,waitFor} from '@testing-library/react'
+import {MemoryRouter,useLocation,useNavigate} from 'react-router-dom'
 import App from '../src/App'
-
-function LocationProbe() {
-  const loc = useLocation()
-  return <div data-testid="location">{`${loc.pathname}?${loc.search}`}</div>
-}
-
-describe('驾驶舱前端外壳（#1851）', () => {
-  it('七个页签都在，且默认页签挂上对应面板', () => {
-    render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
-    expect(screen.getByTestId('tabs')).toBeTruthy()
-    expect(screen.getByTestId('card-关键指标概览')).toBeTruthy()
-  })
-
-  it('全局筛选写入 URL（刷新后保持靠 URL 单一真相）', async () => {
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <LocationProbe />
-        <App />
-      </MemoryRouter>,
-    )
-    fireEvent.change(screen.getByTestId('filter-range'), { target: { value: 'custom' } })
-    await waitFor(() => expect(screen.getByTestId('location').textContent).toContain('range=custom'))
-    fireEvent.change(screen.getByTestId('filter-compare'), { target: { value: 'yoy' } })
-    await waitFor(() => expect(screen.getByTestId('location').textContent).toContain('compare=yoy'))
-    // 切页签不丢筛选
-    fireEvent.click(screen.getByTestId('tab-finance'))
-    await waitFor(() => {
-      const url = screen.getByTestId('location').textContent || ''
-      expect(url).toContain('tab=finance')
-      expect(url).toContain('compare=yoy')
-      expect(url).toContain('range=custom')
-    })
-  })
-
-  it('会所维度按权限显示（?perm=club 时没有「集团」）', () => {
-    render(<MemoryRouter initialEntries={['/?perm=club']}><App /></MemoryRouter>)
-    const opts = Array.from((screen.getByTestId('filter-venue') as HTMLSelectElement).options).map((o) => o.textContent)
-    expect(opts).toEqual(['本会所'])
-  })
-
-  it('口径提示显示定义与版本号（悬停展开）', () => {
-    render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
-    fireEvent.mouseEnter(screen.getAllByTestId('metric-tip-trigger')[0])
-    const pop = screen.getAllByTestId('metric-definition')[0]
-    expect(pop.textContent).toMatch(/口径 v\d/)
-    expect(pop.textContent.length).toBeGreaterThan(10)
-  })
-
-  it('三种卡片状态各有对应渲染分支（loading / empty / error / normal）', async () => {
-    const { unmount } = render(<MemoryRouter initialEntries={['/?state=loading']}><App /></MemoryRouter>)
-    expect(screen.getAllByTestId('card-loading').length).toBeGreaterThan(0)
-    unmount()
-
-    const r2 = render(<MemoryRouter initialEntries={['/?state=empty']}><App /></MemoryRouter>)
-    expect(screen.getAllByTestId('card-empty').length).toBeGreaterThan(0)
-    r2.unmount()
-
-    const r3 = render(<MemoryRouter initialEntries={['/?state=error']}><App /></MemoryRouter>)
-    expect(screen.getAllByTestId('card-error').length).toBeGreaterThan(0)
-    r3.unmount()
-
-    render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
-    expect(screen.getByTestId('card-关键指标概览')).toBeTruthy()
-  })
-
-  it('卡片显示数据截至时间与导出按钮', async () => {
-    render(<MemoryRouter initialEntries={['/']}><App /></MemoryRouter>)
-    expect(screen.getAllByTestId('card-updated')[0].textContent).toContain('数据截至')
-    expect(screen.getAllByTestId('card-export').length).toBeGreaterThan(0)
-  })
+import {PANELS,panelsFor} from '../src/shell/panels'
+const labels=['总览','网络','商机漏斗','招商','会员成功','组织与 Agent','财务']
+function Probe(){const l=useLocation(),n=useNavigate();return <><output data-testid="url">{l.pathname+l.search}</output><button onClick={()=>n(-1)}>back</button></>}
+describe('shell',()=>{
+ it('exact tabs, eight registry entries and finance only two',()=>{render(<MemoryRouter initialEntries={['/dash?tab=finance']}><App/></MemoryRouter>);expect(screen.getByTestId('tabs').textContent).toBe(labels.join(''));expect(PANELS).toHaveLength(8);expect(new Set(PANELS.map(p=>p.id)).size).toBe(8);expect(panelsFor('finance').map(p=>p.title)).toEqual(['签约额','会籍收入']);expect(screen.getAllByTestId('panel-card')).toHaveLength(2)})
+ it.each(['loading','empty','error'])('renders %s with metadata and no values',async state=>{render(<MemoryRouter initialEntries={['/dash?tab=finance&state='+state]}><App/></MemoryRouter>);expect(screen.getAllByTestId('card-'+state)).toHaveLength(2);expect(screen.getAllByTestId('metric-definition')[0].textContent).toContain('口径');expect(screen.getAllByTestId('as-of')).toHaveLength(2)})
+ it('changes actual route, keeps tab, reconstructs from URL and supports back',async()=>{const {unmount}=render(<MemoryRouter initialEntries={['/dash?tab=finance']}><App/><Probe/></MemoryRouter>);await waitFor(()=>expect(screen.getByTestId('url').textContent).toContain('comparison=mom'));fireEvent.change(screen.getByLabelText('对比方式'),{target:{value:'yoy'}});await waitFor(()=>expect(screen.getByTestId('url').textContent).toContain('comparison=yoy'));const path=screen.getByTestId('url').textContent!;expect(path).toContain('tab=finance');fireEvent.click(screen.getByText('back'));await waitFor(()=>expect((screen.getByLabelText('对比方式') as HTMLSelectElement).value).toBe('mom'));unmount();render(<MemoryRouter initialEntries={[path]}><App/></MemoryRouter>);expect((screen.getByLabelText('对比方式') as HTMLSelectElement).value).toBe('yoy')})
+ it.each([
+  ['overview',5],['network',1],['funnel',1],['sales',1],['success',1],['org-agent',1],['finance',2],
+ ])('renders registered panels for %s', (tab,count)=>{
+   render(<MemoryRouter initialEntries={['/dash?tab='+tab]}><App/></MemoryRouter>)
+   expect(screen.getByTestId('tab-'+tab).getAttribute('aria-current')).toBe('page')
+   expect(screen.getAllByTestId('panel-card')).toHaveLength(count)
+ })
+ it('does not render export controls without permission',async()=>{
+   render(<MemoryRouter initialEntries={['/dash?tab=overview']}><App access={{siteId:'site-private',canViewGroup:false,canExport:false}}/></MemoryRouter>)
+   await screen.findByTestId('rate-end')
+   expect(screen.queryByRole('button',{name:'导出'})).toBeNull()
+ })
+ it('shows data-origin cutoff and permitted export on loaded cards',async()=>{
+   render(<MemoryRouter initialEntries={['/dash?tab=overview&period=custom&start=2026-11-01&end=2026-11-17']}><App access={{siteId:'site-demo-a',canViewGroup:true,canExport:true}}/></MemoryRouter>)
+   await screen.findByTestId('rate-end')
+   expect(screen.getAllByRole('button',{name:'导出'})).toHaveLength(5)
+   expect(screen.getAllByTestId('as-of')[0].textContent).toContain('2026-11-17T23:59:59Z')
+ })
+ it('custom dates and comparison remain in the route after remount',async()=>{
+   const {unmount}=render(<MemoryRouter initialEntries={['/dash?tab=finance']}><App/><Probe/></MemoryRouter>)
+   fireEvent.change(screen.getByLabelText('时间范围'),{target:{value:'custom'}})
+   fireEvent.change(screen.getByLabelText('开始'),{target:{value:'2026-08-12'}})
+   fireEvent.change(screen.getByLabelText('结束'),{target:{value:'2026-09-06'}})
+   fireEvent.click(screen.getByRole('button',{name:'应用'}))
+   fireEvent.change(screen.getByLabelText('对比方式'),{target:{value:'yoy'}})
+   await waitFor(()=>expect(screen.getByTestId('url').textContent).toContain('comparison=yoy'))
+   const href=screen.getByTestId('url').textContent!
+   expect(href).toContain('start=2026-08-12')
+   expect(href).toContain('end=2026-09-06')
+   unmount()
+   render(<MemoryRouter initialEntries={[href]}><App/></MemoryRouter>)
+   expect((screen.getByLabelText('时间范围') as HTMLSelectElement).value).toBe('custom')
+   expect((screen.getByLabelText('开始') as HTMLInputElement).value).toBe('2026-08-12')
+   expect((screen.getByLabelText('结束') as HTMLInputElement).value).toBe('2026-09-06')
+   expect((screen.getByLabelText('对比方式') as HTMLSelectElement).value).toBe('yoy')
+ })
+ it('group option absent for restricted role',()=>{render(<MemoryRouter initialEntries={['/dash?tab=finance&scope=group']}><App access={{siteId:'site-a',canViewGroup:false}}/></MemoryRouter>);expect(screen.queryByRole('option',{name:'集团'})).toBeNull();expect((screen.getByLabelText('会所') as HTMLSelectElement).value).toBe('site')})
 })

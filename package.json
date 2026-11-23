@@ -10,8 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "screenshot": "node scripts/screenshot.mjs",
-    "check:no-external": "node scripts/check-no-external.mjs",
-    "evidence": "node scripts/evidence-dump.mjs"
+    "check:no-external": "node scripts/screenshot.mjs --check-only"
   },
   "dependencies": {
     "echarts": "^5.6.0",

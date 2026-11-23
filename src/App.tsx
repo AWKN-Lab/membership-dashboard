@@ -10,6 +10,7 @@ import { FloorStateView, OccupancyRatePanel } from './panel/OccupancyRatePanel'
 function Dashboard({access}:{access:Access}){
  const location=useLocation(),navigate=useNavigate()
  const f=parseFilters(location.search,access)
+ const todayUtc=new Date().toISOString().slice(0,10)
  const q=new URLSearchParams(location.search)
  const tab=(TABS.find(t=>t.key===q.get('tab'))?.key||'overview') as TabKey
  const state=q.get('state')
@@ -40,7 +41,7 @@ function Dashboard({access}:{access:Access}){
    {f.period==='custom'?<><label className="filters__field">开始<input type="date" value={start} onChange={e=>setStart(e.target.value)}/></label><label className="filters__field">结束<input type="date" value={end} onChange={e=>setEnd(e.target.value)}/></label><Button disabled={!start||!end||start>end} onClick={()=>set({start,end})}>应用</Button></>:<span className="date-range">{f.start} 至 {f.end}</span>}
    <label className="filters__field">对比方式<select aria-label="对比方式" value={f.comparison} onChange={e=>set({comparison:e.target.value==='yoy'?'yoy':'mom'})}><option value="mom">环比</option><option value="yoy">同比</option></select></label>
   </div>
-  {panelsFor(tab).map(p=>p.kind==='occupancy'?<OccupancyRatePanel key={p.id} filters={occupancyFilters(f,access)} asOf={f.end} comparison={f.comparison} empty={empty} forceState={forced}/>:<PanelCard key={p.id} meta={p} state={forced||'empty'} />)}
+  {panelsFor(tab).map(p=>p.kind==='occupancy'?<OccupancyRatePanel key={p.id} filters={occupancyFilters(f,access)} asOf={f.end<todayUtc?f.end:todayUtc} comparison={f.comparison} empty={empty} forceState={forced} canExport={access.canExport===true}/>:<PanelCard key={p.id} meta={p} state={forced||'empty'} canExport={access.canExport===true} />)}
   </main></div>
  </div>
 }

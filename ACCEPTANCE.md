@@ -1,9 +1,9 @@
-# 验收清单
-- #1851 七页签及三态：shell-tabs.png、card-loading.png、panel-empty.png、card-error.png；shell.test.tsx。
-- 口径定义与版本：shell-tabs.png、panel.png；shell.test.tsx。
-- URL：filters.test.ts、shell.test.tsx、browser.log 刷新实测。
-- 运行期无外部域名请求：browser.log（本地 HTTP，监听请求并拒绝外部请求，零外部请求与页面错误）。
-- #1896 堆叠条形图标签、图例：panel.png、panel.test.tsx 和 browser.log。
-- 楼层跳转：真实浏览器图表点击；panel.test.tsx 路由参数。
-- 空状态：panel-empty.png，panel.test.tsx 确认不显示指标和图表。
-- 交付限制见 docs/GPT-REVIEW.md。
+# #1851 第一轮返工验收清单
+
+- AC1：七个指定页签；每个页签一张真实 Chromium 截图，见 docs/screenshots/tab-*.png。
+- AC2：面板标题、口径定义与版本号；八个注册项、财务两张空态卡片，见 src/shell/panels.ts。
+- AC3：会所/时间范围（含自定义起止）/环比同比写 URL，刷新与回退保持；无权限集团回退。
+- AC4：本地打包 ECharts，颜色读取 CSS 设计变量，文字标签可读；浏览器阻断并记录外部请求。
+- AC5：卡片具有数据截止时间、loading/empty/error、口径悬浮提示；导出权限关闭时无按钮。
+- #1896 回归：指标、12 个月趋势、楼层堆叠、到期分桶、续约趋势、楼层跳转及空态。
+- 测试与证据来源见 docs/acceptance-evidence.md；暂不代表平台已重交、客户已验收。

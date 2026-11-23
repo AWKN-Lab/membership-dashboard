@@ -17,6 +17,26 @@ try{
  page.on('pageerror',e=>bad.push(String(e)))
  page.on('request',r=>{if(!r.url().startsWith(base+'/')&&!r.url().startsWith('data:')&&!r.url().startsWith('blob:'))bad.push('external '+r.url())})
  await page.route('**/*',r=>r.request().url().startsWith(base+'/')||r.request().url().startsWith('data:')||r.request().url().startsWith('blob:')?r.continue():r.abort())
+ const tabShots=[
+  ['tab-overview.png','overview','stacked-bar'],
+  ['tab-network.png','network','panel-card'],
+  ['tab-funnel.png','funnel','panel-card'],
+  ['tab-sales.png','sales','panel-card'],
+  ['tab-success.png','success','panel-card'],
+  ['tab-org-agent.png','org-agent','panel-card'],
+  ['tab-finance.png','finance','panel-card'],
+ ]
+ for(const [name,tab,marker] of tabShots){
+  await page.goto(base+'/dash?tab='+tab+'&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy')
+  await page.getByTestId(marker).first().waitFor()
+  assert.equal(await page.getByTestId('tab-'+tab).getAttribute('aria-current'),'page')
+  if(tab==='finance'){
+   assert.deepEqual(await page.locator('[data-testid="panel-card"] h3').allTextContents(),['签约额','会籍收入'])
+  }
+  if(tab==='overview')await page.getByTestId('stacked-bar').locator('svg text').first().waitFor()
+  if(!process.argv.includes('--check-only'))await page.screenshot({path:resolve(out,name),fullPage:true})
+  console.log('CAPTURE',name)
+ }
  const shots=[['shell-tabs.png','finance','', 'panel-card'],['panel.png','overview','','stacked-bar'],['panel-empty.png','overview','&state=empty','card-empty'],['card-loading.png','overview','&state=loading','card-loading'],['card-error.png','overview','&state=error','card-error']]
  for(const [name,tab,extra,test] of shots){
   await page.goto(base+'/dash?tab='+tab+extra+'&period=custom&start=2026-11-01&end=2026-11-30')

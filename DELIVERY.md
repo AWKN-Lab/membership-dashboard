@@ -1,5 +1,9 @@
-# 交付修订候选
-适用 #1851 和 #1896。保留 v1 提交版本，独立修订分支。
-运行：npm ci、npm run test、npm run build、CHROMIUM_PATH=/path/to/chromium npm run screenshot。
-交付入口：/dash；房态路由 /floors/:floorId；数据使用虚构演示接口桩。
-本文件不代表客户验收或平台已重新提交。详细边界、验收证据见 README / ACCEPTANCE / TEST-REPORT / docs/GPT-REVIEW.md。
+# ClawHunt #1851 第一轮返工交付候选
+
+工作分支：fix/1851-rework-r1-20261123。承接 147ff1cd 的 #1851/#1896 合并演示，
+仅修 #1851 外壳验收问题并做 #1896 回归。不改主线和平台记录。
+
+入口：/dash。自助复跑：npm ci; npm test; npm run build; npm run screenshot。
+本期未对接的面板用空态桩；所有数据为虚构测试数据。
+服务端鉴权、正式指标截止时刻、正式导出接口留给后续业务对接。
+验收索引：ACCEPTANCE.md、docs/acceptance-evidence.md、docs/screenshots/。

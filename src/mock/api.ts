@@ -23,6 +23,7 @@ export interface OccupancyPayload {
   orgId: string
   siteId: string
   month: string
+  dataAsOf: string          // 来源数据的统计截止时间，UTC ISO-8601；不从筛选控件推断
   rateEnd: number          // 期末出租率
   rateMoM: number          // 环比（百分点）
   trend12m: { month: string; rate: number }[]
@@ -40,7 +41,7 @@ export const SITES = [
 export const ORGS = [{ orgId: 'org-demo', name: '演示会员空间' }]
 
 const EMPTY_PAYLOAD: OccupancyPayload = {
-  orgId: 'org-demo', siteId: 'site-demo-a', month: '2026-11',
+  orgId: 'org-demo', siteId: 'site-demo-a', month: '2026-11', dataAsOf: '',
   rateEnd: 0, rateMoM: 0, trend12m: [], floors: [], expiring: { bucket30: 0, bucket60: 0, bucket90: 0 },
   renewalTrend: [], metricVersion: 'v1.2', metricDefinition: '出租率 = 已租工位 ÷ 可租工位（期末值）',
 }
@@ -67,6 +68,10 @@ export function mockOccupancy(orgId: string, siteId: string, month: string, empt
   const months: string[] = []
   const [y, m] = month.split('-').map(Number)
   const end = new Date(Date.UTC(y, m - 1, 1))
+  const cutoffDay = snapshotDay || new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10)
+  const dayClose = cutoffDay + 'T23:59:59Z'
+  // 截止时间不得晚于模拟接口读取时刻，避免当前日期显示未来的 23:59。
+  const dataAsOf = dayClose > new Date().toISOString() ? new Date().toISOString() : dayClose
   for (let i = 11; i >= 0; i--) {
     const d = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() - i, 1))
     months.push(`${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`)
@@ -83,7 +88,7 @@ export function mockOccupancy(orgId: string, siteId: string, month: string, empt
   const rate = total ? Math.round((rented / total) * 1000) / 10 : 0
   trend12m[11].rate = rate
   return {
-    orgId, siteId, month,
+    orgId, siteId, month, dataAsOf,
     rateEnd: rate,
     rateMoM: Math.round((trend12m[11].rate - trend12m[10].rate) * 10) / 10,
     trend12m,

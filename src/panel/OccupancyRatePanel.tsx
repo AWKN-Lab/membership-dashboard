@@ -3,10 +3,10 @@ import {useNavigate,useParams,useLocation} from 'react-router-dom'
 import {PanelCard,type PanelMeta} from '../shell/PanelCard'
 import {TrendLine,StackedBarByFloor,BucketBar} from './charts'
 import {fetchOccupancy,mockOccupancy,type OccupancyPayload,type CardState} from '../mock/api'
-const SEG=[{key:'rented',label:'已租',color:'#0052d9'},{key:'reserved',label:'预留',color:'#b45309'},{key:'vacant',label:'空置',color:'#526071'}] as const
+const SEG=[{key:'rented',label:'已租',color:'--dash-chart-primary'},{key:'reserved',label:'预留',color:'--dash-chart-reserved'},{key:'vacant',label:'空置',color:'--dash-chart-vacant'}] as const
 const metric=(title:string,definition:string,version='v1.2'):PanelMeta=>({title,definition,version})
-export function OccupancyRatePanel({filters,asOf,comparison='mom',empty=false,forceState}:{
- filters:{org_id:string;site_id:string;month:string};asOf?:string;comparison?:'mom'|'yoy';empty?:boolean;forceState?:'loading'|'empty'|'error'
+export function OccupancyRatePanel({filters,asOf,comparison='mom',empty=false,forceState,canExport=false}:{
+ filters:{org_id:string;site_id:string;month:string};asOf?:string;comparison?:'mom'|'yoy';empty?:boolean;forceState?:'loading'|'empty'|'error';canExport?:boolean
 }){
  const [data,setData]=useState<OccupancyPayload|null>(null),[state,setState]=useState<CardState>('loading'),[attempt,retry]=useState(0)
  const navigate=useNavigate()
@@ -19,8 +19,8 @@ export function OccupancyRatePanel({filters,asOf,comparison='mom',empty=false,fo
  },[filters.org_id,filters.site_id,filters.month,empty,forceState,attempt,asOf])
  const rows=(data?.floors||[]).map(f=>({floorId:f.floorId,floorName:f.floorName,parts:SEG.map(s=>({...s,value:f[s.key]}))}))
  const goFloor=(floorId:string)=>{const q=new URLSearchParams(filters);navigate('/floors/'+encodeURIComponent(floorId)+'?'+q.toString())}
- const actualAsOf=state==='normal'?(asOf||filters.month):undefined
- const props={state,asOf:actualAsOf,onRetry:()=>retry(a=>a+1)}
+ const actualAsOf=state==='normal'?data?.dataAsOf:undefined
+ const props={state,asOf:actualAsOf,canExport,onRetry:()=>retry(a=>a+1)}
  const yr=Number(filters.month.slice(0,4))-1
  const priorYear=mockOccupancy(filters.org_id,filters.site_id,String(yr)+filters.month.slice(4),false,asOf?String(yr)+asOf.slice(4):undefined).rateEnd
  const yoy=data?data.rateEnd-priorYear:0

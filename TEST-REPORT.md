@@ -1,6 +1,8 @@
-# 测试报告
-实际执行：Node v22.22.2、npm 10.9.7。
-- npm run test：4 files / 18 passed，exit 0。
-- npm run build：exit 0。
-- scripts/screenshot.mjs：隔离容器 Chromium 1247，生成五张截图，exit 0。
-原始结果位于 docs/evidence/；浏览器脚本通过请求事件捕获外部请求及页面错误，失败会退出非零。
+# #1851 第一轮返工测试记录（2026-11-23）
+
+- 静态/单元：4 个测试文件、30 个测试通过（含七页签逐项注册表、会所权限、导出权限、
+  数据统计截止时间、自定义时间范围 URL、环比同比切换、ECharts 设计变量）。
+- 构建：`npm run build` 通过；当前 ECharts + TDesign bundle 压缩后 JS 790.06 kB，
+  >500 kB 的构建警告尚在，未影响构建退出码。
+- 运行时截图与网络门禁：结果以 docs/evidence/browser.log 为准。
+- 历史 v1 报告及模拟数据不作为第一轮返工最终验收。

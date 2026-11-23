@@ -2,8 +2,8 @@ export type Period = 'this-month' | 'last-month' | 'this-quarter' | 'custom'
 export type Comparison = 'mom' | 'yoy'
 export type Scope = 'site' | 'group'
 export interface Filters { scope: Scope; period: Period; start: string; end: string; comparison: Comparison }
-export interface Access { siteId: string; canViewGroup: boolean }
-export const DEMO_ACCESS: Access = { siteId: 'site-demo-a', canViewGroup: true }
+export interface Access { siteId: string; canViewGroup: boolean; canExport?: boolean }
+export const DEMO_ACCESS: Access = { siteId: 'site-demo-a', canViewGroup: true, canExport: true }
 const day = (d: Date) => d.toISOString().slice(0,10)
 const validDate = (s: string | null): s is string => {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false

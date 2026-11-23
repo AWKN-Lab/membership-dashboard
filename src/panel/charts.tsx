@@ -5,7 +5,17 @@ import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/compon
 import { SVGRenderer } from 'echarts/renderers'
 import type { EChartsCoreOption } from 'echarts/core'
 echarts.use([LineChart,BarChart,GridComponent,LegendComponent,TooltipComponent,SVGRenderer])
-const colors=['#0052d9','#e37318','#6b7785']
+// 所有可视化从 CSS 设计变量读取颜色；测试环境没有 CSS 时才用同色回退值。
+export const resolveChartColor=(token:string,fallback:string)=>{
+ if(typeof document==='undefined')return fallback
+ const value=getComputedStyle(document.documentElement).getPropertyValue(token).trim()
+ return value||fallback
+}
+const palette=()=>[
+ resolveChartColor('--dash-chart-primary','#0052d9'),
+ resolveChartColor('--dash-chart-reserved','#b45309'),
+ resolveChartColor('--dash-chart-vacant','#526071'),
+]
 function Chart({option,height=220,onClick,label}:{option:EChartsCoreOption;height?:number;onClick?:(i:number)=>void;label:string}){
  const el=useRef<HTMLDivElement>(null)
  useEffect(()=>{
@@ -22,15 +32,17 @@ function Chart({option,height=220,onClick,label}:{option:EChartsCoreOption;heigh
 const grid={left:55,right:24,top:32,bottom:34,containLabel:true}
 export function TrendLine({data,unit='%'}:{data:{month:string;rate:number}[];unit?:string}){
  if(!data.length)return <div className="state-empty">暂无数据</div>
+ const colors=palette()
  return <div data-testid="trend-line"><Chart label="月度趋势" option={{animation:false,color:colors,grid,tooltip:{trigger:'axis',valueFormatter:(v:number)=>v+unit},xAxis:{type:'category',data:data.map(d=>d.month)},yAxis:{type:'value',min:0,max:100,axisLabel:{formatter:'{value}'+unit}},series:[{type:'line',data:data.map(d=>d.rate),label:{show:true,formatter:'{c}'+unit,fontSize:10}}]}}/></div>
 }
 export interface StackSegment {key:string;label:string;value:number;color:string}
 export function StackedBarByFloor({rows,onFloorClick}:{rows:{floorId:string;floorName:string;parts:StackSegment[]}[];onFloorClick?:(floorId:string)=>void}){
  if(!rows.length)return <div className="state-empty">暂无楼层数据</div>
  const parts=rows[0].parts
+ const colors=rows[0].parts.map(p=>resolveChartColor(p.color,'#526071'))
  return <div data-testid="stacked-bar">
  <Chart label="楼层工位堆叠条形图" height={300} onClick={i=>{if(rows[i])onFloorClick?.(rows[i].floorId)}} option={{
-  animation:false,color:parts.map(p=>p.color),grid:{left:55,right:25,top:44,bottom:25,containLabel:true},tooltip:{trigger:'item'},legend:{top:0,data:parts.map(p=>p.label),selectedMode:false},
+  animation:false,color:colors,grid:{left:55,right:25,top:44,bottom:25,containLabel:true},tooltip:{trigger:'item'},legend:{top:0,data:parts.map(p=>p.label),selectedMode:false},
   xAxis:{type:'value'},yAxis:{type:'category',inverse:true,data:rows.map(r=>r.floorName)},
   series:parts.map(p=>({name:p.label,type:'bar',stack:'total',barWidth:30,label:{show:true,position:'inside',formatter:'{c}',color:'#fff',fontWeight:'bold'},data:rows.map(r=>r.parts.find(s=>s.key===p.key)?.value??0)}))
  }}/>
@@ -38,5 +50,6 @@ export function StackedBarByFloor({rows,onFloorClick}:{rows:{floorId:string;floo
  </div>
 }
 export function BucketBar({data,labels}:{data:number[];labels:string[]}){
+ const colors=palette()
  return <div data-testid="bucket-bar"><Chart label="到期工位分桶" option={{animation:false,color:[colors[1]],grid,tooltip:{trigger:'item'},xAxis:{type:'category',data:labels},yAxis:{type:'value',min:0},series:[{type:'bar',data,label:{show:true,position:'top'}}]}}/></div>
 }

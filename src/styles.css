@@ -1,4 +1,9 @@
-:root { color-scheme: light; font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+:root {
+  --dash-chart-primary: #0052d9;
+  --dash-chart-reserved: #b45309;
+  --dash-chart-vacant: #526071;
+  --dash-chart-text: #1b1f23;
+  color-scheme: light; font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #f5f6f8; color: #1b1f23; }
 .shell { min-height: 100vh; display: flex; flex-direction: column; }

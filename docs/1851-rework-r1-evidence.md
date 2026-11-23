@@ -15,6 +15,10 @@
 - 30/30 单测通过；docs/evidence/unit.log。
 - 构建 exit 0；docs/evidence/build.log；JS chunk 仍有 >500 kB 警告。
 - 真实 Chromium 12/12 截图；docs/evidence/browser.log。
+  - **本轮截图已重出**：脚本新增**中文字形自检**（canvas 内把 9 个汉字与 9 个等长 .notdef 参照字符
+    比对像素签名与墨迹包围盒；一致即判定为豆腐块并非零退出）。上一轮 12 张在**无中文字体的隔离
+    Chromium** 下产出、中文全为豆腐块，**已作废**；本轮在含 Noto CJK 的 Chromium 下重出，中文可读。
+    复现：`CHROMIUM_PATH=<带 Noto CJK 的 chromium> node scripts/screenshot.mjs`。
 - 浏览器刷新、楼层跳转、零外部请求/页面错误通过。
 - 本演示为虚构 mock 和接口桩，服务端权限和正式财务数据未接入。
 - ClawHunt 平台正式重交和客户验收另行确认，当前仅为 Git 返工交付候选。

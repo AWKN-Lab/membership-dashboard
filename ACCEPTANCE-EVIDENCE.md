@@ -25,18 +25,19 @@
 
 | 截图 | sha256 |
 |---|---|
-| `docs/screenshots/card-error.png` | `e8bfe5fc2f471a744e6e1c88b66111754519a0d5890f7c75b02e0d7a00590670` |
-| `docs/screenshots/card-loading.png` | `62122cae76efcd4e36fd94f279f5f98d6fb935e166c992064381dd1b7f1d8f70` |
-| `docs/screenshots/panel-empty.png` | `3d7f911ba5b00c768396e9239252d516da43e4654eec22e858c1a352938e742c` |
-| `docs/screenshots/panel.png` | `b0af81334cc8936a3d606e0019c12a41a6830f34537d8472c124c3712fd93b0b` |
-| `docs/screenshots/shell-tabs.png` | `617d7413779f7da9c0fafb7543c37aa60cfe927e0592e3277a58223147478bb9` |
-| `docs/screenshots/tab-finance.png` | `71ed666d599952103a87e286db70543b7d82dafb8a1e6fa247113fca247a60c7` |
-| `docs/screenshots/tab-funnel.png` | `3bd6c3510e109c0476870a06d35d097e8f73a40609c823fbe9fffdb3aac989c1` |
-| `docs/screenshots/tab-network.png` | `1b33d85191eafaa631b17f9ff589bce178b4aa3605cab9ed9b0afd1f909093fc` |
-| `docs/screenshots/tab-org-agent.png` | `619cddbcd8d62e431f550ee467b2f7d948af8feffbcd19428d453684cd9f44ed` |
-| `docs/screenshots/tab-overview.png` | `3fedf316333f249830ed3c65730e517e14aa1d8962ee97b5b02d360feca445b9` |
-| `docs/screenshots/tab-sales.png` | `ab6ff99ffb5d8c53ba72e5736dc852af61271c5bcb482f45294f4a5834fb398b` |
-| `docs/screenshots/tab-success.png` | `a47f2a73f6737a730c688a7fc0670819841c378f596e9997efe32641de3f6266` |
+| `docs/screenshots/card-error.png` | `486ba63a3fafba2bed198d08e7fef017e0f8fc556034396ec33611742da99552` |
+| `docs/screenshots/card-loading.png` | `6874a15f69fe2eac66b18b6d4ec85ed5152760fb53ac4c7002972c4c52c9a2cd` |
+| `docs/screenshots/panel-empty.png` | `c0db1d01359ff186a7bcda5aa69c891e5cdc41cec4e6678d169bc5f95e9f3399` |
+| `docs/screenshots/panel.png` | `bb6a5889a75f177470d9f104af9666f7d6e6ff40c720d4a2cfea608999c5adf3` |
+| `docs/screenshots/shell-tabs.png` | `649e60e51bc44772bc2cf100358b8c8fce5ced776300c7175745596ab7b6e690` |
+| `docs/screenshots/tab-finance.png` | `1e10eff12a79433f34829446c6a4bc4a3e7009f599f7e7a6494881d90f0458b3` |
+| `docs/screenshots/tab-funnel.png` | `408bd3ea7ff1a5fcf806731ffa6f5358c7684c2b47fe26f85e17c210df070732` |
+| `docs/screenshots/tab-network.png` | `0510ff630f70e7dd961b3422ed131f06055fb4b52e398f19e7c807a04140aa3c` |
+| `docs/screenshots/tab-org-agent.png` | `56ee62b1e46578d8b6332786e64956abccaa7f82770a882f139851e0db3f97c4` |
+| `docs/screenshots/tab-overview.png` | `74a18b0ee7eed13d6e0de279b0930c1be64f049d29a5a7585b9a943642bfeea5` |
+| `docs/screenshots/tab-overview-noexport.png` | `16ecd7d320fedaa0c600ce3d09d4db90e182f1d0e80e40c008ba813ef43a0fc1` |
+| `docs/screenshots/tab-sales.png` | `c8f9fc9427b8513bb4577cf173353f94c350a09e649468432eb929a85168e928` |
+| `docs/screenshots/tab-success.png` | `6eaa4af6798c83d1adbda9f8a36684a84914c67bf3518246b28de43282dfba11` |
 
 
 
@@ -96,7 +97,7 @@ npm ci
 npm test                  # Test Files 4 passed (4) | Tests 30 passed (30)
 npm run build             # exit 0（仅 >500 kB chunk 警告）
 npm run check:no-external # 构建产物无外部域名引用
-CHROMIUM_PATH=<带中文字体的 Chrome/Chromium> node scripts/screenshot.mjs  # 12 张截图 + 行为断言
+CHROMIUM_PATH=<带中文字体的 Chrome/Chromium> node scripts/screenshot.mjs  # 13 张截图 + 行为断言
 node scripts/evidence-dump.mjs   # 重新生成本文件
 ```
 

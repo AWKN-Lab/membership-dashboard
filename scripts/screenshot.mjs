@@ -16,7 +16,23 @@ try{
  const bad=[]
  page.on('pageerror',e=>bad.push(String(e)))
  page.on('request',r=>{if(!r.url().startsWith(base+'/')&&!r.url().startsWith('data:')&&!r.url().startsWith('blob:'))bad.push('external '+r.url())})
- await page.route('**/*',r=>r.request().url().startsWith(base+'/')||r.request().url().startsWith('data:')||r.request().url().startsWith('blob:')?r.continue():r.abort())
+ // 无权限态捕获：同一 dist 产物，仅在服务层把演示权限常量 canExport:true 改为 false 后提供；
+ // 不改 src/，不改 dist 文件本身。改写须恰好命中一次，否则直接失败。
+ // 仅改 canExport（siteId 与 canViewGroup 保持演示值），使截图与 tab-overview.png 只有导出按钮一个差别；
+ // 无权限的完整访问对象（site-private、无集团、无导出）由单元测试 tests/shell.test.tsx 断言覆盖。
+ let noExport=false
+ const DEMO_LITERAL='siteId:"site-demo-a",canViewGroup:!0,canExport:!0'
+ const NOEXPORT_LITERAL='siteId:"site-demo-a",canViewGroup:!0,canExport:!1'
+ await page.route('**/*',async r=>{
+  const url=r.request().url()
+  if(!url.startsWith(base+'/')&&!url.startsWith('data:')&&!url.startsWith('blob:'))return r.abort()
+  if(noExport&&url.endsWith('.js')){
+   const text=await readFile(resolve(dir,'.'+new URL(url).pathname),'utf8')
+   assert.equal(text.split(DEMO_LITERAL).length-1,1,'DEMO_ACCESS literal must occur exactly once')
+   return r.fulfill({contentType:'text/javascript',body:text.replace(DEMO_LITERAL,NOEXPORT_LITERAL)})
+  }
+  return r.continue()
+ })
  const tabShots=[
   ['tab-overview.png','overview','stacked-bar'],
   ['tab-network.png','network','panel-card'],
@@ -76,7 +92,7 @@ try{
  }
  const shots=[['shell-tabs.png','finance','', 'panel-card'],['panel.png','overview','','stacked-bar'],['panel-empty.png','overview','&state=empty','card-empty'],['card-loading.png','overview','&state=loading','card-loading'],['card-error.png','overview','&state=error','card-error']]
  for(const [name,tab,extra,test] of shots){
-  await page.goto(base+'/dash?tab='+tab+extra+'&period=custom&start=2026-11-01&end=2026-11-30')
+  await page.goto(base+'/dash?tab='+tab+extra+'&period=custom&start=2026-11-01&end=2026-11-22')
   await page.getByTestId(test).first().waitFor()
   if(name==='panel.png'){
     const svg=page.getByTestId('stacked-bar').locator('svg')
@@ -86,6 +102,16 @@ try{
   if(!process.argv.includes('--check-only'))await page.screenshot({path:resolve(out,name),fullPage:true})
   console.log('CAPTURE',name)
  }
+ // 无权限态：导出按钮须一个都不渲染；其余内容与 tab-overview.png 一致（同一数据、同一 as-of）。
+ noExport=true
+ try{
+  await page.goto(base+'/dash?tab=overview&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy')
+  await page.getByTestId('stacked-bar').waitFor()
+  assert.equal(await page.getByRole('button',{name:'导出'}).count(),0)
+  assert.deepEqual(await page.getByTestId('as-of').allTextContents(),Array(5).fill('数据截至时间：2026-11-22T23:59:59Z'))
+  if(!process.argv.includes('--check-only'))await page.screenshot({path:resolve(out,'tab-overview-noexport.png'),fullPage:true})
+  console.log('CAPTURE','tab-overview-noexport.png')
+ }finally{noExport=false}
  await page.goto(base+'/dash?tab=finance')
  await page.getByLabel('对比方式').selectOption('yoy')
  await page.waitForURL(/comparison=yoy/)

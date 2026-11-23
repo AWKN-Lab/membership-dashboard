@@ -4,7 +4,7 @@
 生成方式：`npm run build && node scripts/evidence-dump.mjs`（Playwright 打开已构建的 dist，读 DOM；全程零外部请求，异常即非零退出）。
 本文件随仓提交，验收方可自行重跑核对。
 
-生成时间：2026-11-23T08:27:48.047Z　｜　外部请求数：**0**　｜　页面错误数：**0**
+生成时间：2026-11-23T12:10:47.536Z　｜　外部请求数：**0**　｜　页面错误数：**0**
 
 ## AC1 七个页签（DOM 实际渲染，逐字）
 
@@ -119,18 +119,19 @@
 
 | 文件 | 大小 | sha256 |
 |---|---|---|
-| `docs/screenshots/tab-overview.png` | 168595 字节 | `3fedf316333f249830ed3c65730e517e14aa1d8962ee97b5b02d360feca445b9` |
-| `docs/screenshots/tab-network.png` | 41167 字节 | `1b33d85191eafaa631b17f9ff589bce178b4aa3605cab9ed9b0afd1f909093fc` |
-| `docs/screenshots/tab-funnel.png` | 41365 字节 | `3bd6c3510e109c0476870a06d35d097e8f73a40609c823fbe9fffdb3aac989c1` |
-| `docs/screenshots/tab-sales.png` | 40473 字节 | `ab6ff99ffb5d8c53ba72e5736dc852af61271c5bcb482f45294f4a5834fb398b` |
-| `docs/screenshots/tab-success.png` | 41235 字节 | `a47f2a73f6737a730c688a7fc0670819841c378f596e9997efe32641de3f6266` |
-| `docs/screenshots/tab-org-agent.png` | 41717 字节 | `619cddbcd8d62e431f550ee467b2f7d948af8feffbcd19428d453684cd9f44ed` |
-| `docs/screenshots/tab-finance.png` | 51821 字节 | `71ed666d599952103a87e286db70543b7d82dafb8a1e6fa247113fca247a60c7` |
-| `docs/screenshots/shell-tabs.png` | 52067 字节 | `617d7413779f7da9c0fafb7543c37aa60cfe927e0592e3277a58223147478bb9` |
-| `docs/screenshots/panel.png` | 170849 字节 | `b0af81334cc8936a3d606e0019c12a41a6830f34537d8472c124c3712fd93b0b` |
-| `docs/screenshots/panel-empty.png` | 87658 字节 | `3d7f911ba5b00c768396e9239252d516da43e4654eec22e858c1a352938e742c` |
-| `docs/screenshots/card-loading.png` | 85566 字节 | `62122cae76efcd4e36fd94f279f5f98d6fb935e166c992064381dd1b7f1d8f70` |
-| `docs/screenshots/card-error.png` | 103736 字节 | `e8bfe5fc2f471a744e6e1c88b66111754519a0d5890f7c75b02e0d7a00590670` |
+| `docs/screenshots/tab-overview.png` | 178116 字节 | `74a18b0ee7eed13d6e0de279b0930c1be64f049d29a5a7585b9a943642bfeea5` |
+| `docs/screenshots/tab-overview-noexport.png` | 175182 字节 | `16ecd7d320fedaa0c600ce3d09d4db90e182f1d0e80e40c008ba813ef43a0fc1` |
+| `docs/screenshots/tab-network.png` | 43592 字节 | `0510ff630f70e7dd961b3422ed131f06055fb4b52e398f19e7c807a04140aa3c` |
+| `docs/screenshots/tab-funnel.png` | 43819 字节 | `408bd3ea7ff1a5fcf806731ffa6f5358c7684c2b47fe26f85e17c210df070732` |
+| `docs/screenshots/tab-sales.png` | 42960 字节 | `c8f9fc9427b8513bb4577cf173353f94c350a09e649468432eb929a85168e928` |
+| `docs/screenshots/tab-success.png` | 43793 字节 | `6eaa4af6798c83d1adbda9f8a36684a84914c67bf3518246b28de43282dfba11` |
+| `docs/screenshots/tab-org-agent.png` | 44366 字节 | `56ee62b1e46578d8b6332786e64956abccaa7f82770a882f139851e0db3f97c4` |
+| `docs/screenshots/tab-finance.png` | 54900 字节 | `1e10eff12a79433f34829446c6a4bc4a3e7009f599f7e7a6494881d90f0458b3` |
+| `docs/screenshots/shell-tabs.png` | 55050 字节 | `649e60e51bc44772bc2cf100358b8c8fce5ced776300c7175745596ab7b6e690` |
+| `docs/screenshots/panel.png` | 176936 字节 | `bb6a5889a75f177470d9f104af9666f7d6e6ff40c720d4a2cfea608999c5adf3` |
+| `docs/screenshots/panel-empty.png` | 92278 字节 | `c0db1d01359ff186a7bcda5aa69c891e5cdc41cec4e6678d169bc5f95e9f3399` |
+| `docs/screenshots/card-loading.png` | 89992 字节 | `6874a15f69fe2eac66b18b6d4ec85ed5152760fb53ac4c7002972c4c52c9a2cd` |
+| `docs/screenshots/card-error.png` | 110248 字节 | `486ba63a3fafba2bed198d08e7fef017e0f8fc556034396ec33611742da99552` |
 
 ## 复跑命令
 
@@ -139,7 +140,7 @@ npm ci
 npm test                  # Test Files 4 passed (4) | Tests 30 passed (30)
 npm run build             # exit 0（仅 >500 kB chunk 警告）
 npm run check:no-external # 构建产物无外部域名引用
-CHROMIUM_PATH=<带中文字体的 Chrome/Chromium> node scripts/screenshot.mjs  # 12 张截图 + 行为断言
+CHROMIUM_PATH=<带中文字体的 Chrome/Chromium> node scripts/screenshot.mjs  # 13 张截图 + 行为断言
 node scripts/evidence-dump.mjs   # 重新生成本文件
 ```
 
@@ -152,3 +153,13 @@ node scripts/evidence-dump.mjs   # 重新生成本文件
 | 楼层跳转丢掉 floorId | `tests/panel.test.tsx` 落地页断言失败 |
 | 去掉 URL 参数写入 | `tests/shell.test.tsx` 刷新/返回断言失败 |
 | ECharts 改成 CDN | `tests/noExternal.test.ts` + `npm run check:no-external` 变红 |
+
+> 注：上表 tab-overview-noexport.png 一行由整合时手工补入（证据转储脚本只覆盖 12 张，未含无权限态截图），SHA 与大小取自实际文件。
+
+## 第一轮返工补证（R1，2026-11-23；整合时补记）
+
+- 逐项对照表：`docs/r1-item-mapping.md`（买方 5 项 → 结论、证据文件、测试/截图编号）。
+- dataAsOf/canExport 专项验证：`docs/r1-dataasof-canexport.md`。
+- 截图目验：`docs/r1-screenshot-review.md`（13/13 全部通过；整合时逐张重验，结论同前）。
+- 补充证据（bundle 解释、ECharts grep、URL 往返示例、MANIFEST 校验方法）：`docs/r1-supplement.md`。
+- 整合说明：`scripts/evidence-dump.mjs` 在远端 0b2651f 已修复（旧版过期问题不存在），本文件由修复版脚本在整合树上重新生成；无权限态截图与 13 张目验见上列。

@@ -7,7 +7,7 @@
 | `ACCEPTANCE-EVIDENCE.md` | **逐条验收证据**（本文件是它的索引）：七页签 DOM 原文、三种卡片状态、口径定义与版本、筛选 URL 往返、零外部请求断言、截图 sha256、复跑命令、变异自证 |
 | `docs/acceptance-evidence.md` | 同一份证据的完整版（含每个页签的 DOM 明细）|
 | `docs/evidence/dom.log` | DOM 转储原始日志（外部请求 0 / 页面错误 0）|
-| `docs/screenshots/*.png` | 12 张真实运行截图（7 页签 + 3 卡片状态 + 面板 + 外壳）|
+| `docs/screenshots/*.png` | 13 张真实运行截图（7 页签 + 3 卡片状态 + 面板 + 外壳 + 无权限态）|
 | `README.md` | 安装/运行/验收逐条对应 |
 | `docs/verification.md` | 验证记录（命令 / 期望 / 实测 / 变异自证）|
 

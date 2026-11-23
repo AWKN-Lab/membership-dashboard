@@ -1,13 +1,25 @@
+
+> membership-dashboard@1.0.0 check:no-external
+> node scripts/screenshot.mjs --check-only
+
+PASS font: CJK glyphs are real (not .notdef), ink bbox [5,1,286,32]
 CAPTURE tab-overview.png
+PASS font: CJK glyphs are real (not .notdef), ink bbox [5,1,286,32]
 CAPTURE tab-network.png
+PASS font: CJK glyphs are real (not .notdef), ink bbox [5,1,286,32]
 CAPTURE tab-funnel.png
+PASS font: CJK glyphs are real (not .notdef), ink bbox [5,1,286,32]
 CAPTURE tab-sales.png
+PASS font: CJK glyphs are real (not .notdef), ink bbox [5,1,286,32]
 CAPTURE tab-success.png
+PASS font: CJK glyphs are real (not .notdef), ink bbox [5,1,286,32]
 CAPTURE tab-org-agent.png
+PASS font: CJK glyphs are real (not .notdef), ink bbox [5,1,286,32]
 CAPTURE tab-finance.png
 CAPTURE shell-tabs.png
 CAPTURE panel.png
 CAPTURE panel-empty.png
 CAPTURE card-loading.png
 CAPTURE card-error.png
+CAPTURE tab-overview-noexport.png
 PASS browser: screenshots, refresh, chart floor navigation, zero external requests/page errors

@@ -1,0 +1,519 @@
+{
+ "generatedAt": "2026-11-23T08:27:48.069Z",
+ "browser": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+ "externalTotal": 0,
+ "errorTotal": 0,
+ "refresh": {
+  "url": "/dash?tab=finance&scope=site&period=this-month&start=2026-11-01&end=2026-11-30&comparison=yoy",
+  "tab": "finance",
+  "comparison": "yoy"
+ },
+ "runs": [
+  {
+   "label": "tab:overview",
+   "data": {
+    "url": "/dash?tab=overview&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "总览",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "出租率",
+      "definition": "口径 v1.2：已租工位 ÷ 可租工位（期末值）；环比 = 本期末 − 上期末（百分点）",
+      "asOf": "数据截至时间：2026-11-22T23:59:59Z",
+      "exportButton": true,
+      "state": "normal",
+      "stateText": ""
+     },
+     {
+      "title": "近 12 个月出租率趋势",
+      "definition": "口径 v1.2：每月末出租率（%）",
+      "asOf": "数据截至时间：2026-11-22T23:59:59Z",
+      "exportButton": true,
+      "state": "normal",
+      "stateText": ""
+     },
+     {
+      "title": "按楼层工位结构",
+      "definition": "口径 v1.2：已租、预留、空置工位数互斥",
+      "asOf": "数据截至时间：2026-11-22T23:59:59Z",
+      "exportButton": true,
+      "state": "normal",
+      "stateText": ""
+     },
+     {
+      "title": "到期工位分桶",
+      "definition": "口径 v1.2：到期日距离统计时点：0–30、31–60、61–90 天",
+      "asOf": "数据截至时间：2026-11-22T23:59:59Z",
+      "exportButton": true,
+      "state": "normal",
+      "stateText": ""
+     },
+     {
+      "title": "续约率趋势",
+      "definition": "口径 v1.2：每月续约率（%），演示口径",
+      "asOf": "数据截至时间：2026-11-22T23:59:59Z",
+      "exportButton": true,
+      "state": "normal",
+      "stateText": ""
+     }
+    ],
+    "chartTexts": [
+     "F1 层",
+     "F2 层",
+     "F3 层",
+     "F4 层",
+     "F5 层",
+     "0",
+     "20",
+     "40",
+     "60",
+     "80",
+     "100",
+     "82",
+     "52",
+     "63",
+     "72",
+     "59",
+     "5",
+     "1",
+     "0",
+     "5",
+     "14",
+     "12",
+     "12",
+     "14",
+     "8",
+     "15",
+     "已租",
+     "预留",
+     "空置"
+    ]
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "tab:network",
+   "data": {
+    "url": "/dash?tab=network&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "网络",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "会员网络",
+      "definition": "口径 draft：会员关系网络（待口径库对接）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "tab:funnel",
+   "data": {
+    "url": "/dash?tab=funnel&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "商机漏斗",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "商机漏斗",
+      "definition": "口径 draft：按商机阶段汇总（待口径库对接）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "tab:sales",
+   "data": {
+    "url": "/dash?tab=sales&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "招商",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "招商",
+      "definition": "口径 draft：招商线索与转化（待口径库对接）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "tab:success",
+   "data": {
+    "url": "/dash?tab=success&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "会员成功",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "会员成功",
+      "definition": "口径 draft：会员服务指标（待口径库对接）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "tab:org-agent",
+   "data": {
+    "url": "/dash?tab=org-agent&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "组织与 Agent",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "组织与 Agent",
+      "definition": "口径 draft：组织与 Agent 指标（待口径库对接）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "tab:finance",
+   "data": {
+    "url": "/dash?tab=finance&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "财务",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "签约额",
+      "definition": "口径 mock-v1：筛选期间签约金额合计（分）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     },
+     {
+      "title": "会籍收入",
+      "definition": "口径 mock-v1：筛选期间会籍收入合计（分）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "state:loading",
+   "data": {
+    "url": "/dash?tab=overview&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&state=loading&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "总览",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "出租率",
+      "definition": "口径 v1.2：已租工位 ÷ 可租工位（期末值）；环比 = 本期末 − 上期末（百分点）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "loading",
+      "stateText": "加载中…"
+     },
+     {
+      "title": "近 12 个月出租率趋势",
+      "definition": "口径 v1.2：每月末出租率（%）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "loading",
+      "stateText": "加载中…"
+     },
+     {
+      "title": "按楼层工位结构",
+      "definition": "口径 v1.2：已租、预留、空置工位数互斥",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "loading",
+      "stateText": "加载中…"
+     },
+     {
+      "title": "到期工位分桶",
+      "definition": "口径 v1.2：到期日距离统计时点：0–30、31–60、61–90 天",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "loading",
+      "stateText": "加载中…"
+     },
+     {
+      "title": "续约率趋势",
+      "definition": "口径 v1.2：每月续约率（%），演示口径",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "loading",
+      "stateText": "加载中…"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "state:empty",
+   "data": {
+    "url": "/dash?tab=overview&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&state=empty&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "总览",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "出租率",
+      "definition": "口径 v1.2：已租工位 ÷ 可租工位（期末值）；环比 = 本期末 − 上期末（百分点）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     },
+     {
+      "title": "近 12 个月出租率趋势",
+      "definition": "口径 v1.2：每月末出租率（%）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     },
+     {
+      "title": "按楼层工位结构",
+      "definition": "口径 v1.2：已租、预留、空置工位数互斥",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     },
+     {
+      "title": "到期工位分桶",
+      "definition": "口径 v1.2：到期日距离统计时点：0–30、31–60、61–90 天",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     },
+     {
+      "title": "续约率趋势",
+      "definition": "口径 v1.2：每月续约率（%），演示口径",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "empty",
+      "stateText": "暂无数据"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  },
+  {
+   "label": "state:error",
+   "data": {
+    "url": "/dash?tab=overview&period=custom&start=2026-11-01&end=2026-11-22&comparison=yoy&state=error&scope=site",
+    "tabs": [
+     "总览",
+     "网络",
+     "商机漏斗",
+     "招商",
+     "会员成功",
+     "组织与 Agent",
+     "财务"
+    ],
+    "activeTab": "总览",
+    "filters": {
+     "scope": "site",
+     "period": "custom",
+     "comparison": "yoy"
+    },
+    "cards": [
+     {
+      "title": "出租率",
+      "definition": "口径 v1.2：已租工位 ÷ 可租工位（期末值）；环比 = 本期末 − 上期末（百分点）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "error",
+      "stateText": "数据加载失败，请稍后重试"
+     },
+     {
+      "title": "近 12 个月出租率趋势",
+      "definition": "口径 v1.2：每月末出租率（%）",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "error",
+      "stateText": "数据加载失败，请稍后重试"
+     },
+     {
+      "title": "按楼层工位结构",
+      "definition": "口径 v1.2：已租、预留、空置工位数互斥",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "error",
+      "stateText": "数据加载失败，请稍后重试"
+     },
+     {
+      "title": "到期工位分桶",
+      "definition": "口径 v1.2：到期日距离统计时点：0–30、31–60、61–90 天",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "error",
+      "stateText": "数据加载失败，请稍后重试"
+     },
+     {
+      "title": "续约率趋势",
+      "definition": "口径 v1.2：每月续约率（%），演示口径",
+      "asOf": "数据截至时间：—",
+      "exportButton": false,
+      "state": "error",
+      "stateText": "数据加载失败，请稍后重试"
+     }
+    ],
+    "chartTexts": []
+   },
+   "external": [],
+   "errors": []
+  }
+ ]
+}

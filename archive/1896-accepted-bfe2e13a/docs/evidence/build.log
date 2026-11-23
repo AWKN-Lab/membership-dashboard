@@ -1,0 +1,18 @@
+
+> membership-dashboard@1.0.0 build
+> tsc -b && vite build
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+vite v5.4.21 building for production...
+transforming...
+✓ 1291 modules transformed.
+rendering chunks...
+dist/index.html                   0.40 kB
+dist/assets/index-n5t_SYqz.css   50.21 kB
+dist/assets/index-j2Kc0QDj.js   767.22 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 13.53s

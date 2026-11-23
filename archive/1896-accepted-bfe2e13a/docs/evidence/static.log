@@ -1,0 +1,5 @@
+
+> membership-dashboard@1.0.0 check:no-external
+> node scripts/check-no-external.mjs
+
+构建产物无外部域名引用 ✅

@@ -1,0 +1,529 @@
+=== permission exit=1 ===
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /home/clawhunt-deploy/clawhunt-gpt-work/dashboard-consolidate-t1priN/repo
+
+ ❯ tests/behavior-regression.test.tsx (10 tests | 1 failed | 9 skipped) 13ms
+   × 实际行为回归 > 权限限制覆盖伪造 URL 与数据入口，不仅隐藏选项 11ms
+     → expected 'cluster' to be 'club' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/behavior-regression.test.tsx > 实际行为回归 > 权限限制覆盖伪造 URL 与数据入口，不仅隐藏选项
+AssertionError: expected 'cluster' to be 'club' // Object.is equality
+
+Expected: "club"
+Received: "cluster"
+
+ ❯ tests/behavior-regression.test.tsx:15:25
+     13|  it('权限限制覆盖伪造 URL 与数据入口，不仅隐藏选项',async()=>{
+     14|   const hostile=parseFilters('?venue=cluster&range=custom&from=2026-01…
+     15|   expect(hostile.venue).toBe('club')
+       |                         ^
+     16|   await expect(fetchPanelData('network',{...hostile,venue:'cluster'},d…
+     17|   render(<MemoryRouter initialEntries={['/dash?tab=network&venue=clust…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  11:37:20
+   Duration  5.05s (transform 697ms, setup 792ms, collect 2.46s, tests 13ms, environment 1.37s, prepare 152ms)
+
+
+RESTORE_SHA256 daf8606c8de28b925fab69ba0fba4bed792c4ce1376e73263590cbf0f0ccd578 src/shell/filters.ts
+=== occupancy exit=1 ===
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /home/clawhunt-deploy/clawhunt-gpt-work/dashboard-consolidate-t1priN/repo
+
+ ❯ tests/behavior-regression.test.tsx (10 tests | 1 failed | 9 skipped) 24ms
+   × 实际行为回归 > 期末值等于库存合计和趋势末点，环比与同比独立计算 23ms
+     → expected 76.8 to be 75.8 // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/behavior-regression.test.tsx > 实际行为回归 > 期末值等于库存合计和趋势末点，环比与同比独立计算
+AssertionError: expected 76.8 to be 75.8 // Object.is equality
+
+- Expected
++ Received
+
+- 75.8
++ 76.8
+
+ ❯ tests/behavior-regression.test.tsx:55:22
+     53|    const total=a.floors.reduce((n,r)=>n+r.rented+r.reserved+r.vacant,0)
+     54|    const rented=a.floors.reduce((n,r)=>n+r.rented,0)
+     55|    expect(a.rateEnd).toBe(Math.round(rented/total*1000)/10)
+       |                      ^
+     56|    expect(a.trendRates.at(-1)).toBe(a.rateEnd);expect(a.trendMonths.at…
+     57|    expect(a.rateMoM).toBe(Math.round((a.rateEnd-occupancySnapshot(venu…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  11:37:26
+   Duration  4.86s (transform 611ms, setup 821ms, collect 2.35s, tests 24ms, environment 1.22s, prepare 121ms)
+
+
+RESTORE_SHA256 017d9f03677c85815d15459080feba7a9bc08dfc4d886c8604c76cc4c8ab1e76 src/mock/api.ts
+=== export exit=1 ===
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /home/clawhunt-deploy/clawhunt-gpt-work/dashboard-consolidate-t1priN/repo
+
+stderr | tests/behavior-regression.test.tsx > 实际行为回归 > 点击导出绑定当前面板实际 CSV，而非空表头
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ ❯ tests/behavior-regression.test.tsx (10 tests | 1 failed | 9 skipped) 326ms
+   × 实际行为回归 > 点击导出绑定当前面板实际 CSV，而非空表头 324ms
+     → expected "spy" to be called 1 times, but got 0 times
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/behavior-regression.test.tsx > 实际行为回归 > 点击导出绑定当前面板实际 CSV，而非空表头
+AssertionError: expected "spy" to be called 1 times, but got 0 times
+ ❯ tests/behavior-regression.test.tsx:92:38
+     90|    const b=screen.getByTestId('card-export') as HTMLButtonElement
+     91|    await waitFor(()=>expect(b.disabled).toBe(false))
+     92|    fireEvent.click(b);expect(create).toHaveBeenCalledTimes(1)
+       |                                      ^
+     93|    const blob=create.mock.calls[0][0],reader=new FileReader()
+     94|    const csv=await new Promise<string>((ok,fail)=>{reader.onload=()=>o…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  11:37:32
+   Duration  5.73s (transform 838ms, setup 971ms, collect 2.43s, tests 326ms, environment 1.36s, prepare 284ms)
+
+
+RESTORE_SHA256 e921e931dde7816986c005f563c0fdf030e3def1c98d0c371a04776e22c9eb53 src/App.tsx
+=== comparison exit=1 ===
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /home/clawhunt-deploy/clawhunt-gpt-work/dashboard-consolidate-t1priN/repo
+
+stderr | tests/behavior-regression.test.tsx > 实际行为回归 > 同比 UI 口径与独立计算值一致
+⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+Warning: An update to PanelCard inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at PanelCard (/home/clawhunt-deploy/clawhunt-gpt-work/dashboard-consolidate-t1priN/repo/src/App.tsx:204:22)
+    at main
+    at div
+    at div
+    at App (/home/clawhunt-deploy/clawhunt-gpt-work/dashboard-consolidate-t1priN/repo/src/App.tsx:28:42)
+    at Router (/home/clawhunt-deploy/clawhunt-gpt-work/dashboard-consolidate-t1priN/repo/node_modules/react-router/dist/umd/react-router.development.js:1203:17)
+    at MemoryRouter (/home/clawhunt-deploy/clawhunt-gpt-work/dashboard-consolidate-t1priN/repo/node_modules/react-router/dist/umd/react-router.development.js:1097:7)
+
+ ❯ tests/behavior-regression.test.tsx (10 tests | 1 failed | 9 skipped) 1119ms
+   × 实际行为回归 > 同比 UI 口径与独立计算值一致 1118ms
+     → expected '同比 -3.9pp' to contain '同比 +2.4pp'
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="shell"
+      >
+        <header
+          class="shell__header"
+        >
+          <span
+            class="shell__title"
+          >
+            管理驾驶舱
+          </span>
+          <span
+            class="shell__sub"
+          >
+            会员空间平台 · Stage iii（演示数据）
+          </span>
+        </header>
+        <div
+          class="shell__body"
+        >
+          <nav
+            aria-label="驾驶舱页签"
+            class="sidebar"
+            data-testid="tabs"
+          >
+            <button
+              class="sidebar__item"
+              data-testid="tab-overview"
+              type="button"
+            >
+              总览
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-network"
+              type="button"
+            >
+              网络
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-funnel"
+              type="button"
+            >
+              商机漏斗
+            </button>
+            <button
+              aria-current="page"
+              class="sidebar__item sidebar__item--active"
+              data-testid="tab-leads"
+              type="button"
+            >
+              招商
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-member-success"
+              type="button"
+            >
+              会员成功
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-org-agent"
+              type="button"
+            >
+              组织与 Agent
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-finance"
+              type="button"
+            >
+              财务
+            </button>
+          </nav>
+          <main
+            class="main"
+          >
+            <div
+              class="filters"
+              data-testid="filters"
+            >
+              <label
+                class="filters__field"
+              >
+                会所
+                <select
+                  aria-label="会所"
+                  data-testid="filter-venue"
+                >
+                  <option
+                    value="club"
+                  >
+                    本会所
+                  </option>
+                  <option
+                    value="cluster"
+                  >
+                    集团
+                  </option>
+                </select>
+              </label>
+              <label
+                class="filters__field"
+              >
+                时间范围
+                <select
+                  aria-label="时间范围"
+                  data-testid="filter-range"
+                >
+                  <option
+                    value="this_month"
+                  >
+                    本月
+                  </option>
+                  <option
+                    value="last_month"
+                  >
+                    上月
+                  </option>
+                  <option
+                    value="this_quarter"
+                  >
+                    本季度
+                  </option>
+                  <option
+                    value="custom"
+                  >
+                    自定义
+                  </option>
+                </select>
+              </label>
+              <label
+                class="filters__field"
+              >
+                起
+                <input
+                  aria-label="起始日期"
+                  data-testid="filter-from"
+                  type="date"
+                  value="2026-05-01"
+                />
+              </label>
+              <label
+                class="filters__field"
+              >
+                止
+                <input
+                  aria-label="结束日期"
+                  data-testid="filter-to"
+                  type="date"
+                  value="2026-08-31"
+                />
+              </label>
+              <button
+                class="t-button t-button--theme-primary t-button--variant-base t-size-s"
+                data-testid="filter-apply"
+                type="button"
+              >
+                <span
+                  class="t-button__text"
+                >
+                  应用
+                </span>
+              </button>
+              <label
+                class="filters__field"
+              >
+                对比方式
+                <select
+                  aria-label="对比方式"
+                  data-testid="filter-compare"
+                >
+                  <option
+                    value="mom"
+               ...
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/behavior-regression.test.tsx > 实际行为回归 > 同比 UI 口径与独立计算值一致
+AssertionError: expected '同比 -3.9pp' to contain '同比 +2.4pp'
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <div
+        class="shell"
+      >
+        <header
+          class="shell__header"
+        >
+          <span
+            class="shell__title"
+          >
+            管理驾驶舱
+          </span>
+          <span
+            class="shell__sub"
+          >
+            会员空间平台 · Stage iii（演示数据）
+          </span>
+        </header>
+        <div
+          class="shell__body"
+        >
+          <nav
+            aria-label="驾驶舱页签"
+            class="sidebar"
+            data-testid="tabs"
+          >
+            <button
+              class="sidebar__item"
+              data-testid="tab-overview"
+              type="button"
+            >
+              总览
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-network"
+              type="button"
+            >
+              网络
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-funnel"
+              type="button"
+            >
+              商机漏斗
+            </button>
+            <button
+              aria-current="page"
+              class="sidebar__item sidebar__item--active"
+              data-testid="tab-leads"
+              type="button"
+            >
+              招商
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-member-success"
+              type="button"
+            >
+              会员成功
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-org-agent"
+              type="button"
+            >
+              组织与 Agent
+            </button>
+            <button
+              class="sidebar__item"
+              data-testid="tab-finance"
+              type="button"
+            >
+              财务
+            </button>
+          </nav>
+          <main
+            class="main"
+          >
+            <div
+              class="filters"
+              data-testid="filters"
+            >
+              <label
+                class="filters__field"
+              >
+                会所
+                <select
+                  aria-label="会所"
+                  data-testid="filter-venue"
+                >
+                  <option
+                    value="club"
+                  >
+                    本会所
+                  </option>
+                  <option
+                    value="cluster"
+                  >
+                    集团
+                  </option>
+                </select>
+              </label>
+              <label
+                class="filters__field"
+              >
+                时间范围
+                <select
+                  aria-label="时间范围"
+                  data-testid="filter-range"
+                >
+                  <option
+                    value="this_month"
+                  >
+                    本月
+                  </option>
+                  <option
+                    value="last_month"
+                  >
+                    上月
+                  </option>
+                  <option
+                    value="this_quarter"
+                  >
+                    本季度
+                  </option>
+                  <option
+                    value="custom"
+                  >
+                    自定义
+                  </option>
+                </select>
+              </label>
+              <label
+                class="filters__field"
+              >
+                起
+                <input
+                  aria-label="起始日期"
+                  data-testid="filter-from"
+                  type="date"
+                  value="2026-05-01"
+                />
+              </label>
+              <label
+                class="filters__field"
+              >
+                止
+                <input
+                  aria-label="结束日期"
+                  data-testid="filter-to"
+                  type="date"
+                  value="2026-08-31"
+                />
+              </label>
+              <button
+                class="t-button t-button--theme-primary t-button--variant-base t-size-s"
+                data-testid="filter-apply"
+                type="button"
+              >
+                <span
+                  class="t-button__text"
+                >
+                  应用
+                </span>
+              </button>
+              <label
+                class="filters__field"
+              >
+                对比方式
+                <select
+                  aria-label="对比方式"
+                  data-testid="filter-compare"
+                >
+                  <option
+                    value="mom"
+               ...
+
+Expected: "同比 +2.4pp"
+Received: "同比 -3.9pp"
+
+ ❯ tests/behavior-regression.test.tsx:104:72
+    102|   render(<MemoryRouter initialEntries={['/dash?tab=leads&range=custom&…
+    103|   const d=(await fetchPanelData('occupancy',{...f,compare:'yoy'})).occ…
+    104|   await waitFor(()=>expect(screen.getByTestId('rate-mom').textContent)…
+       |                                                                        ^
+    105|   expect(screen.getByTestId('metric-definition').textContent).toContai…
+    106|  })
+ ❯ runWithExpensiveErrorDiagnosticsDisabled node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  11:37:39
+   Duration  5.91s (transform 604ms, setup 778ms, collect 2.16s, tests 1.12s, environment 1.38s, prepare 139ms)
+
+
+RESTORE_SHA256 c77284a6031f875884e5a3b10856c92a0ac3aab9bcabddc266c2063bdfe83d97 src/panels/PanelContent.tsx

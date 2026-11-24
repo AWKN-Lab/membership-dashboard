@@ -1,3 +1,5 @@
+> 📌 **验收基线见 [`ACCEPTANCE-BASELINE.md`](ACCEPTANCE-BASELINE.md)** —— 本仓 HEAD 会继续往前走，但"被验收的是哪一版"在那里一眼可见。
+
 # 会员空间管理驾驶舱（#1851 / #1896）
 独立修订分支。使用虚构演示数据。源代码使用 React、TypeScript、TDesign Button/Tooltip 和本地打包 ECharts SVG renderer。
 ## 运行与验收
